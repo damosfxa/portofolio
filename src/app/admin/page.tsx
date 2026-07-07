@@ -95,7 +95,7 @@ export default function AdminProjects() {
         </div>
         {!showForm && (
           <button 
-            onClick={() => { setEditingId(null); setFormData({ title: "", category: "Web App", description: "", tags: "", link: "", thumbnail: "", featured: false }); setShowForm(true); }}
+            onClick={() => { setEditingId(null); setFormData({ title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0 }); setShowForm(true); }}
             className="flex items-center gap-2 bg-foreground text-background font-bold px-5 py-2.5 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all text-sm"
           >
             <Plus className="w-4 h-4" /> Tambah Project
