@@ -225,8 +225,8 @@ export function ProjectsSection() {
                     <span className="text-primary">•</span> Tech Stack
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProject.tags.map((tag) => (
-                      <span key={tag} className="flex items-center gap-[7px] text-[13px] font-semibold px-[14px] py-[7px] rounded-full bg-surface-subtle border border-border text-text-dim">
+                    {selectedProject.tags.map((tag: string) => (
+                      <span key={tag} className="flex items-center gap-[7px] text-[13px] font-medium px-3 py-1.5 rounded-full bg-surface-subtle border border-border text-foreground">
                         {TECH_ICONS[tag] && (
                           <img src={TECH_ICONS[tag]} alt={tag} className="w-[15px] h-[15px] object-contain" />
                         )}

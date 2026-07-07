@@ -65,7 +65,7 @@ export function TiltCard({ children, className, ...props }: HTMLMotionProps<"div
           background,
         }}
       />
-      {children}
+      {children as React.ReactNode}
     </motion.div>
   );
 }
