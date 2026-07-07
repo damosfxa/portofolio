@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  
+  --color-primary: var(--accent-blue);
+  --color-primary-foreground: #ffffff;
+  
+  --color-muted: var(--bg-subtle);
+  --color-muted-foreground: var(--text-muted);
+  
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  
+  --color-surface: var(--bg-surface);
+  --color-surface-hover: var(--bg-hover);
+
+  --color-text-dim: var(--text-dim);
+  --color-text-subtle: var(--text-subtle);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-shimmer: shimmer 2s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root {
+  /* LIGHT THEME (default) */
+  --bg: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F4F4F5;
+  --bg-hover: #EFEFEF;
+  --text: #09090B;
+  --text-muted: #71717A;
+  --text-subtle: #A1A1AA;
+  --text-dim: #52525B;
+  --border: rgba(0, 0, 0, 0.07);
+  --border-hover: rgba(0, 0, 0, 0.13);
+  --accent: #09090B;
+  --accent-blue: #2563EB;
+  --radius: 8px;
+}
+
+.dark {
+  /* DARK THEME */
+  --bg: #09090B;
+  --bg-surface: #111113;
+  --bg-subtle: #18181B;
+  --bg-hover: #1C1C1F;
+  --text: #FAFAFA;
+  --text-muted: #71717A;
+  --text-subtle: #3F3F46;
+  --text-dim: #52525B;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(255, 255, 255, 0.13);
+  --accent: #FAFAFA;
+  --accent-blue: #4F8EF7;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-text-subtle rounded-full;
+  }
 }
