@@ -15,7 +15,7 @@ export function ContactSection() {
     
     const formData = new FormData(e.currentTarget);
     const object = Object.fromEntries(formData);
-    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY;
+    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY || '6e025e64-3551-48da-8bfe-90f88860d2ff';
 
     if (!accessKey) {
       alert("Web3Forms access key is missing! Please configure NEXT_PUBLIC_WEB3FORMS_KEY in your .env.local file.");
