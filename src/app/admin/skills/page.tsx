@@ -10,7 +10,7 @@ export default function AdminSkills() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [formData, setFormData] = useState({ name: "", category: "Core" });
+  const [formData, setFormData] = useState({ name: "", category: "Frontend - Language" });
 
   useEffect(() => {
     fetchSkills();
@@ -46,7 +46,7 @@ export default function AdminSkills() {
 
   const openEdit = (s: any) => {
     setEditingId(s.id);
-    setFormData({ name: s.name, category: s.category || "Core" });
+    setFormData({ name: s.name, category: s.category || "Frontend - Language" });
     setShowForm(true);
   };
 
@@ -65,7 +65,7 @@ export default function AdminSkills() {
         </div>
         {!showForm && (
           <button 
-            onClick={() => { setEditingId(null); setFormData({ name: "", category: "Core" }); setShowForm(true); }}
+            onClick={() => { setEditingId(null); setFormData({ name: "", category: "Frontend - Language" }); setShowForm(true); }}
             className="flex items-center gap-2 bg-foreground text-background font-bold px-5 py-2.5 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all text-sm"
           >
             <Plus className="w-4 h-4" /> Tambah Skill
@@ -88,10 +88,22 @@ export default function AdminSkills() {
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold">Kategori *</label>
                 <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm">
-                  <option value="Core">Core</option>
-                  <option value="Framework">Framework</option>
-                  <option value="Tools">Tools</option>
-                  <option value="Others">Others</option>
+                  <optgroup label="Frontend">
+                    <option value="Frontend - Language">Language</option>
+                    <option value="Frontend - Framework">Framework</option>
+                    <option value="Frontend - Libraries">Libraries</option>
+                  </optgroup>
+                  <optgroup label="Backend">
+                    <option value="Backend - Language">Language</option>
+                    <option value="Backend - Database">Database</option>
+                    <option value="Backend - API">API</option>
+                  </optgroup>
+                  <optgroup label="Legacy / Others">
+                    <option value="Core">Core</option>
+                    <option value="Framework">Framework</option>
+                    <option value="Tools">Tools</option>
+                    <option value="Others">Others</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
