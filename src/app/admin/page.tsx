@@ -11,6 +11,9 @@ export default function AdminProjects() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
 
+  const [githubRepos, setGithubRepos] = useState<any[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+
   // Form State
   const [formData, setFormData] = useState({
     title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0
@@ -18,7 +21,22 @@ export default function AdminProjects() {
 
   useEffect(() => {
     fetchProjects();
+    fetchGithubRepos();
   }, []);
+
+  const fetchGithubRepos = async () => {
+    setLoadingRepos(true);
+    try {
+      const res = await fetch("https://api.github.com/users/damosfxa/repos?sort=updated&per_page=100");
+      if (res.ok) {
+        const data = await res.json();
+        setGithubRepos(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingRepos(false);
+  };
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -30,6 +48,23 @@ export default function AdminProjects() {
   const handleInputChange = (e: any) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const handleRepoSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const repoName = e.target.value;
+    if (!repoName) return;
+    
+    const repo = githubRepos.find(r => r.name === repoName);
+    if (repo) {
+      setFormData(prev => ({
+        ...prev,
+        title: repo.name || prev.title,
+        description: repo.description || prev.description,
+        github: repo.html_url || prev.github,
+        link: repo.homepage || prev.link,
+        tags: repo.topics && repo.topics.length > 0 ? repo.topics.join(", ") : prev.tags
+      }));
+    }
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,6 +145,20 @@ export default function AdminProjects() {
             <button onClick={() => setShowForm(false)} className="text-text-muted hover:text-foreground"><X className="w-5 h-5" /></button>
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2 p-4 bg-surface-subtle border border-border rounded-xl">
+              <label className="text-sm font-semibold flex justify-between items-center">
+                <span>⚡ Auto-fill dari GitHub</span>
+                {loadingRepos && <span className="text-xs text-blue-500 animate-pulse">Loading repos...</span>}
+              </label>
+              <select onChange={handleRepoSelect} defaultValue="" className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-blue-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                <option value="" disabled>- select a public repo -</option>
+                {githubRepos.map(repo => (
+                  <option key={repo.id} value={repo.name}>{repo.full_name}</option>
+                ))}
+              </select>
+              <p className="text-xs text-text-muted">Pilih repository untuk mengisi Judul, Deskripsi, Link, dan Tags otomatis.</p>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold">Judul Project *</label>
