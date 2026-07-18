@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, LogOut, Code, Award, Clock, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink } from "lucide-react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -53,9 +53,9 @@ export function AdminSidebar() {
         <a
           href="/"
           target="_blank"
-          className="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-text-muted hover:text-foreground transition-colors"
+          className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-text-muted hover:text-foreground transition-colors"
         >
-          Lihat Website &nearr;
+          Lihat Website <ExternalLink className="w-4 h-4" />
         </a>
         <button
           onClick={handleLogout}

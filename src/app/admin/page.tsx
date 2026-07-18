@@ -96,10 +96,19 @@ export default function AdminProjects() {
       sort: parseInt(formData.sort as any) || 0,
     };
 
+    let errorObj = null;
+
     if (editingId) {
-      await supabase.from("projects").update(payload).eq("id", editingId);
+      const { error } = await supabase.from("projects").update(payload).eq("id", editingId);
+      errorObj = error;
     } else {
-      await supabase.from("projects").insert([{ ...payload }]);
+      const { error } = await supabase.from("projects").insert([{ ...payload }]);
+      errorObj = error;
+    }
+    
+    if (errorObj) {
+      alert("Gagal menyimpan project: " + errorObj.message);
+      return;
     }
     
     setShowForm(false);
