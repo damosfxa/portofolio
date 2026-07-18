@@ -131,17 +131,8 @@ export function ProjectsSection() {
                 <img
                   src={project.thumbnail?.startsWith("http") ? project.thumbnail : "/" + project.thumbnail}
                   alt={project.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <motion.span 
-                    initial={{ y: 10, opacity: 0 }}
-                    whileInView={{ y: 0, opacity: 1 }}
-                    className="text-xs font-bold tracking-widest text-background px-6 py-2.5 rounded-sm bg-foreground shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300"
-                  >
-                    VIEW PROJECT
-                  </motion.span>
-                </div>
               </div>
               
               <div className="p-6 flex flex-col flex-1">
