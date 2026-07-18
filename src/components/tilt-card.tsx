@@ -58,13 +58,7 @@ export function TiltCard({ children, className, ...props }: HTMLMotionProps<"div
       className={`relative ${className || ""}`}
       {...props}
     >
-      <motion.div
-        className="pointer-events-none absolute inset-0 z-50 transition-opacity"
-        style={{
-          opacity: opacitySpring,
-          background,
-        }}
-      />
+
       {children as React.ReactNode}
     </motion.div>
   );
