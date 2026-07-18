@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TiltCard } from "./tilt-card";
 import { supabase } from "@/lib/supabase";
-import Image from "next/image";
 import { X, ExternalLink } from "lucide-react";
 import { FaGithub } from "react-icons/fa";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -129,11 +128,10 @@ export function ProjectsSection() {
               className="group flex flex-col rounded-sm border border-border bg-surface overflow-hidden hover:border-foreground transition-all duration-300 cursor-pointer"
             >
               <div className="relative aspect-[16/10] bg-muted overflow-hidden">
-                <Image
-                  src={"/" + project.thumbnail}
+                <img
+                  src={project.thumbnail?.startsWith("http") ? project.thumbnail : "/" + project.thumbnail}
                   alt={project.title}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                   <motion.span 
@@ -192,13 +190,13 @@ export function ProjectsSection() {
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed top-0 right-0 h-[100dvh] w-full md:w-[600px] max-w-full bg-surface border-l border-border z-[101] shadow-[-20px_0_50px_rgba(0,0,0,0.45)] flex flex-col overflow-y-auto"
+              data-lenis-prevent="true"
             >
               <div className="relative w-full aspect-[16/9] bg-muted shrink-0">
-                <Image
-                  src={"/" + selectedProject.thumbnail}
+                <img
+                  src={selectedProject.thumbnail?.startsWith("http") ? selectedProject.thumbnail : "/" + selectedProject.thumbnail}
                   alt={selectedProject.title}
-                  fill
-                  className="object-cover"
+                  className="w-full h-full object-cover"
                 />
                 <button
                   onClick={() => setSelectedProject(null)}
