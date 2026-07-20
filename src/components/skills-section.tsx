@@ -33,6 +33,9 @@ const TECH_ICONS: Record<string, string> = {
   'WordPress':    'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/wordpress/wordpress-plain.svg',
   'Figma':        'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg',
   'GraphQL':      'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/graphql/graphql-plain.svg',
+  'Supabase':     'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/supabase/supabase-original.svg',
+  'Prisma':       'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/prisma/prisma-original.svg',
+  'NEON':         'https://cdn.simpleicons.org/neon/00e599',
 };
 
 export function SkillsSection() {
