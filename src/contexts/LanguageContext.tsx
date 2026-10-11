@@ -64,6 +64,11 @@ const translations = {
     "projects.openNow": "Buka sekarang",
     "projects.live": "Demo",
     "projects.code": "Kode",
+    "projects.private": "Kode privat · milik klien",
+    "projects.privateHint": "Kode ini milik klien, jadi tidak dipublikasikan. Bisa ditunjukkan saat interview.",
+    "projects.zoom": "Perbesar",
+    "projects.shot": "Gambar",
+    "projects.close": "Tutup",
     // Skills
     "skills.title": "Skill",
     "skills.items": "bingkai",
@@ -146,6 +151,11 @@ const translations = {
     "projects.openNow": "Open now",
     "projects.live": "Live demo",
     "projects.code": "Code",
+    "projects.private": "Private code · client-owned",
+    "projects.privateHint": "This code belongs to the client, so it is not public. Happy to walk through it in an interview.",
+    "projects.zoom": "Zoom",
+    "projects.shot": "Image",
+    "projects.close": "Close",
     // Skills
     "skills.title": "Skills",
     "skills.items": "frames",

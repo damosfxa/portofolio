@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Edit2, Trash2, Plus, X, Image as ImageIcon } from "lucide-react";
+import { Edit2, Trash2, Plus, X, Image as ImageIcon, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 
 export default function AdminProjects() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -10,14 +10,13 @@ export default function AdminProjects() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   const [githubRepos, setGithubRepos] = useState<any[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
 
   // Form State
-  const [formData, setFormData] = useState({
-    title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0
-  });
+  const [formData, setFormData] = useState({ title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0, gallery: [] as string[], code_private: false });
 
   useEffect(() => {
     fetchProjects();
@@ -86,6 +85,44 @@ export default function AdminProjects() {
     setUploading(false);
   };
 
+  const uploadFile = async (file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+    const { error } = await supabase.storage.from("images").upload(fileName, file);
+    if (error) throw error;
+    return supabase.storage.from("images").getPublicUrl(fileName).data.publicUrl;
+  };
+
+  // Galeri: bisa memilih banyak gambar sekaligus.
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (!files.length) return;
+    setUploadingGallery(true);
+    try {
+      const urls: string[] = [];
+      for (const f of files) urls.push(await uploadFile(f));
+      setFormData(prev => ({ ...prev, gallery: [...prev.gallery, ...urls] }));
+    } catch (err: any) {
+      alert("Gagal upload gambar galeri: " + err.message);
+    }
+    setUploadingGallery(false);
+  };
+
+  const moveGallery = (i: number, dir: -1 | 1) => {
+    setFormData(prev => {
+      const g = [...prev.gallery];
+      const j = i + dir;
+      if (j < 0 || j >= g.length) return prev;
+      [g[i], g[j]] = [g[j], g[i]];
+      return { ...prev, gallery: g };
+    });
+  };
+
+  const removeGallery = (i: number) => {
+    setFormData(prev => ({ ...prev, gallery: prev.gallery.filter((_, k) => k !== i) }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.description) return alert("Judul dan deskripsi wajib diisi");
@@ -107,7 +144,8 @@ export default function AdminProjects() {
     }
     
     if (errorObj) {
-      alert("Gagal menyimpan project: " + errorObj.message);
+      const missing = /gallery|code_private/.test(errorObj.message);
+      alert("Gagal menyimpan project: " + errorObj.message + (missing ? "\n\nKolom galeri belum ada di database. Jalankan SQL penambahan kolom di Supabase dulu." : ""));
       return;
     }
     
@@ -119,7 +157,8 @@ export default function AdminProjects() {
     setEditingId(p.id);
     setFormData({
       title: p.title || "", category: p.category || "Web App", description: p.description || "",
-      tags: p.tags ? p.tags.join(", ") : "", link: p.link || "", github: p.github || "", thumbnail: p.thumbnail || "", sort: p.sort || 0
+      tags: p.tags ? p.tags.join(", ") : "", link: p.link || "", github: p.github || "", thumbnail: p.thumbnail || "", sort: p.sort || 0,
+      gallery: p.gallery || [], code_private: !!p.code_private
     });
     setShowForm(true);
   };
@@ -139,7 +178,7 @@ export default function AdminProjects() {
         </div>
         {!showForm && (
           <button 
-            onClick={() => { setEditingId(null); setFormData({ title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0 }); setShowForm(true); }}
+            onClick={() => { setEditingId(null); setFormData({ title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0, gallery: [] as string[], code_private: false }); setShowForm(true); }}
             className="flex items-center gap-2 bg-foreground text-background font-bold px-5 py-2.5 rounded-xl hover:-translate-y-0.5 hover:shadow-lg transition-all text-sm"
           >
             <Plus className="w-4 h-4" /> Tambah Project
@@ -205,6 +244,13 @@ export default function AdminProjects() {
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold">Link Github</label>
                 <input type="url" name="github" value={formData.github} onChange={handleInputChange} className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm" placeholder="https://github.com/..." />
+                <label className="flex items-start gap-2 text-sm cursor-pointer mt-1">
+                  <input type="checkbox" name="code_private" checked={formData.code_private} onChange={handleInputChange} className="mt-0.5" />
+                  <span>
+                    <span className="font-semibold inline-flex items-center gap-1"><Lock className="w-3.5 h-3.5" /> Kode privat (milik klien)</span>
+                    <span className="block text-xs text-text-muted">Link GitHub tetap tersimpan di sini, tapi di portofolio tombol &quot;Kode&quot; diganti label &quot;Kode privat · milik klien&quot;.</span>
+                  </span>
+                </label>
               </div>
             </div>
             <div className="flex flex-col gap-2">
@@ -217,6 +263,27 @@ export default function AdminProjects() {
                 </label>
               </div>
               {formData.thumbnail && <img src={formData.thumbnail} alt="Preview" className="mt-2 w-32 h-20 object-cover rounded-lg border border-border" />}
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-semibold">Galeri isi aplikasi</label>
+              <p className="text-xs text-text-muted">Screenshot halaman di dalam aplikasi (dashboard, form, laporan). Pengunjung bisa melihatnya tanpa login. Bisa pilih banyak gambar sekaligus, lalu atur urutannya dengan tombol panah.</p>
+              <div className="flex flex-wrap gap-3">
+                {formData.gallery.map((url, i) => (
+                  <div key={url} className="relative w-36 rounded-lg border border-border overflow-hidden bg-background">
+                    <img src={url} alt={`Galeri ${i + 1}`} className="w-36 h-24 object-cover" />
+                    <div className="flex items-center justify-between px-1 py-1 text-xs">
+                      <button type="button" onClick={() => moveGallery(i, -1)} disabled={i === 0} className="p-1 rounded hover:bg-surface-hover disabled:opacity-30" aria-label="Geser ke kiri"><ChevronLeft className="w-4 h-4" /></button>
+                      <span className="text-text-muted">{i + 1}</span>
+                      <button type="button" onClick={() => moveGallery(i, 1)} disabled={i === formData.gallery.length - 1} className="p-1 rounded hover:bg-surface-hover disabled:opacity-30" aria-label="Geser ke kanan"><ChevronRight className="w-4 h-4" /></button>
+                    </div>
+                    <button type="button" onClick={() => removeGallery(i)} className="absolute top-1 right-1 p-1 rounded-md bg-black/60 text-white hover:bg-red-600" aria-label="Hapus gambar"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+                <label className="cursor-pointer w-36 h-[124px] flex flex-col items-center justify-center gap-1 border-2 border-dashed border-border rounded-lg hover:bg-surface-hover transition-colors text-sm font-semibold text-text-muted">
+                  {uploadingGallery ? "Mengunggah..." : <><Plus className="w-5 h-5" /> Tambah gambar</>}
+                  <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" disabled={uploadingGallery} />
+                </label>
+              </div>
             </div>
             <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-border">
               <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-xl text-sm font-semibold border border-border hover:bg-surface-hover">Batal</button>
@@ -243,7 +310,7 @@ export default function AdminProjects() {
                 </div>
                 <div>
                   <h3 className="font-bold text-foreground">{p.title}</h3>
-                  <p className="text-xs text-text-muted">{p.category} • Urutan: #{p.sort || '-'}</p>
+                  <p className="text-xs text-text-muted">{p.category} • Urutan: #{p.sort || '-'}{p.gallery?.length ? ` • ${p.gallery.length} gambar galeri` : ""}{p.code_private ? " • Kode privat" : ""}</p>
                 </div>
               </div>
               <div className="flex gap-2">

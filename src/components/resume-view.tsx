@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Download, ExternalLink, Mail, Printer } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Lock, Mail, Printer } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { site } from "@/content/site";
@@ -145,11 +145,17 @@ export function ResumeView({ projects, skills, certificates, timeline }: Props) 
                         <span className="hidden print:inline"> ({p.link})</span>
                       </a>
                     )}
-                    {p.github && (
-                      <a href={p.github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline">
-                        <FaGithub className="h-4 w-4" /> {t("resume.code")}
-                        <span className="hidden print:inline"> ({p.github})</span>
-                      </a>
+                    {p.code_private ? (
+                      <span className="inline-flex items-center gap-1.5 text-ink-soft" title={t("projects.privateHint")}>
+                        <Lock className="h-4 w-4" /> {t("projects.private")}
+                      </span>
+                    ) : (
+                      p.github && (
+                        <a href={p.github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold underline-offset-2 hover:underline">
+                          <FaGithub className="h-4 w-4" /> {t("resume.code")}
+                          <span className="hidden print:inline"> ({p.github})</span>
+                        </a>
+                      )
                     )}
                   </div>
                 </article>

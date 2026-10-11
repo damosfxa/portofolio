@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Lock, Maximize2, X } from "lucide-react";
+import { createPortal } from "react-dom";
 import { FaGithub } from "react-icons/fa";
 import { useGame } from "@/components/game/game-provider";
 import { Scene, bag, rand, type SceneApi } from "@/components/game/scene";
@@ -67,13 +68,20 @@ function ProjectScreen({
   hoverRef: React.MutableRefObject<boolean>;
 }) {
   const { play } = useGame();
+  const { t } = useLanguage();
   const touchX = useRef<number | null>(null);
   const go = (i: number) => {
     play("select");
     setIndex((i + projects.length) % projects.length);
   };
   const p = projects[index];
-  const image = thumbnailOf(p);
+  // Gambar utama lalu galeri isi aplikasi; posisi galeri kembali ke awal saat proyek berganti.
+  const images = [thumbnailOf(p), ...(p.gallery ?? [])].filter((x, i, all): x is string => !!x && all.indexOf(x) === i);
+  const [shot, setShot] = useState({ id: p.id, i: 0 });
+  const shotIndex = shot.id === p.id ? Math.min(shot.i, Math.max(0, images.length - 1)) : 0;
+  const image = images[shotIndex] ?? null;
+  const [zoom, setZoom] = useState(false);
+  const showShot = (i: number) => setShot({ id: p.id, i: (i + images.length) % images.length });
 
   return (
     <div
@@ -130,13 +138,36 @@ function ProjectScreen({
               transition={{ duration: 0.3, ease: steps(4) }}
               className="contents"
             >
-              <div className="flex aspect-[16/10] items-center justify-center border-b-4 border-line bg-panel-2 p-4 md:aspect-auto md:border-b-0 md:border-r-4 md:p-6">
+              <div className="flex flex-col items-center justify-center gap-3 border-b-4 border-line bg-panel-2 p-4 md:border-b-0 md:border-r-4 md:p-6">
                 {image ? (
-                  // Gambar ditampilkan utuh (tidak dipotong), dengan bingkai tipis.
-                  <img src={image} alt="" className="max-h-[300px] w-full border-2 border-line object-contain shadow-[4px_4px_0_0_var(--g-shadow)]" />
+                  // Gambar ditampilkan utuh (tidak dipotong), dengan bingkai tipis; klik untuk memperbesar.
+                  <button onClick={() => setZoom(true)} className="group relative w-full cursor-zoom-in" aria-label={t("projects.zoom")}>
+                    <img src={image} alt="" className="max-h-[300px] w-full border-2 border-line object-contain shadow-[4px_4px_0_0_var(--g-shadow)]" />
+                    <span className="absolute right-2 top-2 flex items-center gap-1 bg-line px-2 py-1 font-pixel text-xs text-coin opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                      <Maximize2 className="h-3 w-3" /> {t("projects.zoom")}
+                    </span>
+                  </button>
                 ) : (
-                  <div className="flex h-full items-center justify-center font-pixel text-5xl text-ink-soft/40">
+                  <div className="flex aspect-[16/10] w-full items-center justify-center font-pixel text-5xl text-ink-soft/40">
                     {String(index + 1).padStart(2, "0")}
+                  </div>
+                )}
+                {images.length > 1 && (
+                  <div className="flex w-full gap-2 overflow-x-auto pb-1">
+                    {images.map((src, i) => (
+                      <button
+                        key={src}
+                        onClick={() => {
+                          play("select");
+                          showShot(i);
+                        }}
+                        aria-label={`${t("projects.shot")} ${i + 1}`}
+                        aria-current={i === shotIndex}
+                        className={`h-12 w-16 shrink-0 border-2 ${i === shotIndex ? "border-coin" : "border-line opacity-60 hover:opacity-100"}`}
+                      >
+                        <img src={src} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -162,10 +193,17 @@ function ProjectScreen({
                       <Txt k="projects.live" /> <ExternalLink className="h-4 w-4" />
                     </a>
                   )}
-                  {p.github && (
-                    <a href={p.github} target="_blank" rel="noopener noreferrer" onClick={() => play("select")} className="pixel-btn bg-panel">
-                      <FaGithub className="h-4 w-4" /> <Txt k="projects.code" />
-                    </a>
+                  {p.code_private ? (
+                    // Repo milik klien: tidak ditautkan, tapi tetap terlihat sebagai project nyata.
+                    <span title={t("projects.privateHint")} className="flex items-center gap-2 border-4 border-dashed border-line px-4 py-2 font-pixel text-sm text-ink-soft">
+                      <Lock className="h-4 w-4" /> <Txt k="projects.private" />
+                    </span>
+                  ) : (
+                    p.github && (
+                      <a href={p.github} target="_blank" rel="noopener noreferrer" onClick={() => play("select")} className="pixel-btn bg-panel">
+                        <FaGithub className="h-4 w-4" /> <Txt k="projects.code" />
+                      </a>
+                    )
                   )}
                 </div>
               </div>
@@ -195,7 +233,99 @@ function ProjectScreen({
           </button>
         </div>
       )}
+
+      {zoom && image && (
+        <Lightbox
+          images={images}
+          index={shotIndex}
+          title={p.title}
+          onIndex={showShot}
+          onClose={() => {
+            setZoom(false);
+            hoverRef.current = false;
+          }}
+          onOpen={() => (hoverRef.current = true)}
+        />
+      )}
     </div>
+  );
+}
+
+/** Gambar diperbesar satu layar penuh; geser dengan panah atau tombol, tutup dengan Esc. */
+function Lightbox({
+  images,
+  index,
+  title,
+  onIndex,
+  onClose,
+  onOpen,
+}: {
+  images: string[];
+  index: number;
+  title: string;
+  onIndex: (i: number) => void;
+  onClose: () => void;
+  onOpen: () => void;
+}) {
+  const { t } = useLanguage();
+
+  useEffect(() => {
+    // Layar proyek tidak bergeser otomatis selama gambar diperbesar.
+    onOpen();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") onIndex(index + 1);
+      if (e.key === "ArrowLeft") onIndex(index - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [index, onClose, onIndex, onOpen]);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[150] flex flex-col bg-[#140F1F]/95 p-4" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+      <div className="flex items-center justify-between gap-4 font-pixel text-sm text-coin">
+        <span className="truncate">{title}</span>
+        <span className="flex items-center gap-3">
+          {images.length > 1 && (
+            <span className="text-white/70">
+              {index + 1} / {images.length}
+            </span>
+          )}
+          <button onClick={onClose} className="pixel-btn bg-panel !p-2" aria-label={t("projects.close")}>
+            <X className="h-5 w-5" />
+          </button>
+        </span>
+      </div>
+      <div className="flex min-h-0 flex-1 items-center justify-center gap-3 py-4">
+        {images.length > 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onIndex(index - 1);
+            }}
+            className="pixel-btn bg-panel !p-2.5"
+            aria-label="Previous"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={images[index]} alt="" onClick={(e) => e.stopPropagation()} className="max-h-full min-w-0 max-w-full border-4 border-line object-contain" />
+        {images.length > 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onIndex(index + 1);
+            }}
+            className="pixel-btn bg-panel !p-2.5"
+            aria-label="Next"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+    </div>,
+    document.body,
   );
 }
 

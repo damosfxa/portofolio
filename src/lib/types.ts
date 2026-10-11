@@ -8,6 +8,10 @@ export type Project = {
   link: string | null;
   github: string | null;
   sort: number | null;
+  /** Gambar tambahan isi aplikasi (diunggah lewat Admin). */
+  gallery?: string[] | null;
+  /** Repo tidak publik (misalnya milik klien): tombol kode diganti label "Kode privat". */
+  code_private?: boolean | null;
 };
 
 export type Skill = {
