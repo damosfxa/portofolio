@@ -9,10 +9,9 @@ import { Scene, bag, rand, type SceneApi } from "@/components/game/scene";
 import { Sprite } from "@/components/game/sprite";
 import { Txt } from "@/components/game/scramble";
 import { SectionTitle, steps } from "@/components/game/section-title";
-import { Floor } from "@/components/game/scenery";
 import { DESK, DESK_PALETTE, PLANT, PLANT_PALETTE } from "@/components/game/sprites";
 import { CHAIR, CHAIR_PALETTE, LAPTOP_CLOSED, LAPTOP_OPEN, LAPTOP_PALETTE } from "@/components/game/props";
-import { Door, PX } from "@/components/rooms/shared";
+import { Door, PX, RoomShell } from "@/components/rooms/shared";
 import { PROJECT_SOLO } from "@/content/dialogue";
 import { roomContent } from "@/content/visitors";
 import { makeVisitorScript } from "@/components/rooms/visitors";
@@ -280,13 +279,24 @@ export function ProjectsSection({ index: sectionIndex, projects, nextRoom }: { i
     openLaptop();
   };
 
+  // Layar proyek ada di dinding (di atas ruangan), sama seperti isi ruangan lain.
   return (
-    <section id="projects" className="wall-projects relative scroll-mt-24 [--px:2.2px] sm:[--px:3px] md:[--px:4px]">
-      <div className="mx-auto w-full max-w-6xl px-6 pt-20 md:pt-28">
-        <SectionTitle index={sectionIndex} titleKey="projects.title" />
-      </div>
-
-      <div className="mx-auto w-full max-w-6xl px-2 sm:px-6">
+    <RoomShell
+      id="projects"
+      wall={
+        <>
+          <SectionTitle index={sectionIndex} titleKey="projects.title" />
+          <ProjectScreen
+            projects={projects}
+            open={open}
+            index={slide}
+            setIndex={setSlide}
+            onOpenNow={openLaptop}
+            hoverRef={hoverRef}
+          />
+        </>
+      }
+      stage={
         <Scene
           className="h-[170px] sm:h-[200px] md:h-[230px]"
           actors={[
@@ -321,7 +331,8 @@ export function ProjectsSection({ index: sectionIndex, projects, nextRoom }: { i
             <Sprite art={COFFEE_STATION} palette={COFFEE_STATION_PALETTE} px={PX} />
           </div>
           <div data-prop="desk" className="absolute bottom-0 left-[38%]" aria-hidden>
-            <span data-prop="laptop" data-state="closed" className="prop absolute bottom-full left-[calc(9*var(--px))] block">
+            {/* Laptop ikut terbuka setiap kali layar proyek terbuka, supaya keduanya selalu sama. */}
+            <span data-prop="laptop" data-state={open ? "open" : "closed"} className="prop absolute bottom-full left-[calc(9*var(--px))] block">
               <span className="s-closed block">
                 <Sprite art={LAPTOP_CLOSED} palette={LAPTOP_PALETTE} px={PX} />
               </span>
@@ -336,19 +347,7 @@ export function ProjectsSection({ index: sectionIndex, projects, nextRoom }: { i
           </div>
           <Door id="door-r" to={nextRoom} label={t("door.next")} className="right-0" />
         </Scene>
-      </div>
-      <Floor height={36} />
-
-      <div className="mx-auto w-full max-w-6xl px-6 pb-24 pt-12 md:pb-32">
-        <ProjectScreen
-          projects={projects}
-          open={open}
-          index={slide}
-          setIndex={setSlide}
-          onOpenNow={openLaptop}
-          hoverRef={hoverRef}
-        />
-      </div>
-    </section>
+      }
+    />
   );
 }
