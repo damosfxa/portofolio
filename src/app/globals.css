@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-pixel: var(--font-pixelify), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-pixelify), ui-monospace, monospace;
+
+  /* Token admin (tidak dipakai halaman utama, jangan diubah sembarangan). */
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-primary: var(--accent-blue);
+  --color-primary-foreground: #ffffff;
+  --color-muted: var(--bg-subtle);
+  --color-muted-foreground: var(--text-muted);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-surface: var(--bg-surface);
+  --color-surface-hover: var(--bg-hover);
+  --color-text-dim: var(--text-dim);
+  --color-text-subtle: var(--text-subtle);
+
+  /* Palet halaman utama (tema kamar lo-fi). Nama token dipertahankan agar komponen tetap sederhana:
+     sky = dinding, on-sky = teks di atas dinding, coin = aksen lampu. */
+  --color-sky: var(--g-sky);
+  --color-panel: var(--g-panel);
+  --color-panel-2: var(--g-panel-2);
+  --color-line: var(--g-line);
+  --color-ink: var(--g-ink);
+  --color-ink-soft: var(--g-ink-soft);
+  --color-on-sky: var(--g-on-sky);
+  --color-coin: #F2A33A;
+  --color-coin-dark: #B86A12;
+  --color-grass: #5BA35B;
+  --color-grass-dark: #3E7A3E;
+  --color-brick: #B9773E;
+  --color-cherry: #E0605A;
+  --color-hoodie: #4F7CAC;
+  --color-teal: #2EC4B6;
+  --color-plum: #9B6BB5;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+:root {
+  /* Admin */
+  --bg: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F4F4F5;
+  --bg-hover: #EFEFEF;
+  --text: #09090B;
+  --text-muted: #63636B;
+  --text-subtle: #9A9AA3;
+  --text-dim: #52525B;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.16);
+  --accent-blue: #2563EB;
+  --radius: 8px;
+
+  /* Kamar: siang */
+  --g-sky: #F3E3C3;
+  --g-panel: #FFF8EC;
+  --g-panel-2: #F6E7CB;
+  --g-line: #3B2A20;
+  --g-ink: #2B1E16;
+  --g-ink-soft: #6B5646;
+  --g-on-sky: #2B1E16;
+  --g-title-shadow: #F2A33A;
+  --g-shadow: rgba(59, 42, 32, 0.28);
+}
+
+.dark {
+  /* Admin */
+  --bg: #09090B;
+  --bg-surface: #111113;
+  --bg-subtle: #18181B;
+  --bg-hover: #1C1C1F;
+  --text: #FAFAFA;
+  --text-muted: #8B8B94;
+  --text-subtle: #5C5C66;
+  --text-dim: #71717A;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --accent-blue: #4F8EF7;
+
+  /* Kamar: malam */
+  --g-sky: #2A2440;
+  --g-panel: #3A3155;
+  --g-panel-2: #463C66;
+  --g-line: #140F1F;
+  --g-ink: #F3E9DA;
+  --g-ink-soft: #C4B8D8;
+  --g-on-sky: #F3E9DA;
+  --g-title-shadow: #9B6BB5;
+  --g-shadow: rgba(0, 0, 0, 0.45);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--g-sky);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--g-line);
+    border: 2px solid var(--g-sky);
+  }
+}
+
+/* ---------- Utilitas pixel ---------- */
+
+/* Bingkai pixel: sudut "terpotong" seperti UI game 8-bit, plus bayangan kotak. */
+@utility pixel-box {
+  position: relative;
+  background: var(--g-panel);
+  color: var(--g-ink);
+  box-shadow:
+    0 -4px 0 0 var(--g-line),
+    0 4px 0 0 var(--g-line),
+    -4px 0 0 0 var(--g-line),
+    4px 0 0 0 var(--g-line),
+    8px 8px 0 0 var(--g-shadow);
+}
+
+@utility pixel-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  padding: 0.8rem 1.15rem;
+  color: var(--g-ink);
+  box-shadow:
+    0 -4px 0 0 var(--g-line),
+    0 4px 0 0 var(--g-line),
+    -4px 0 0 0 var(--g-line),
+    4px 0 0 0 var(--g-line),
+    inset -4px -4px 0 0 rgba(0, 0, 0, 0.18),
+    6px 6px 0 0 var(--g-shadow);
+  transition: transform 80ms steps(2), box-shadow 80ms steps(2);
+  &:hover {
+    transform: translate(-2px, -2px);
+  }
+  &:active {
+    transform: translate(4px, 4px);
+    box-shadow:
+      0 -4px 0 0 var(--g-line),
+      0 4px 0 0 var(--g-line),
+      -4px 0 0 0 var(--g-line),
+      4px 0 0 0 var(--g-line),
+      inset 4px 4px 0 0 rgba(0, 0, 0, 0.18);
+  }
+  &:focus-visible {
+    outline: 3px dashed var(--g-on-sky);
+    outline-offset: 8px;
+  }
+}
+
+@utility pixelated {
+  image-rendering: pixelated;
+}
+
+/* Teks di atas langit: bayangan blok seperti judul game. */
+@utility text-pixel-shadow {
+  text-shadow: 3px 3px 0 var(--g-title-shadow);
+}
+
+/* ---------- Animasi (semua murah: hanya transform/opacity) ---------- */
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes steam {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-14px); opacity: 0; }
+}
+@keyframes zzz {
+  0% { transform: translate(0, 0); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translate(10px, -22px); opacity: 0; }
+}
+
+.animate-blink { animation: blink 1s steps(1) infinite; }
+.animate-bob { animation: bob 1.6s steps(4) infinite; }
+.animate-steam { animation: steam 2.4s steps(6) infinite; }
+.animate-zzz { animation: zzz 2.8s steps(7) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-blink, .animate-bob, .animate-steam, .animate-zzz, .animate-shake {
+    animation: none !important;
+  }
+  html { scroll-behavior: auto !important; }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Frame jalan pemain kecil di HUD. */
+.player-frames > * { display: none; }
+.player-frames[data-frame="idle"] > .f-idle,
+.player-frames[data-frame="a"] > .f-a,
+.player-frames[data-frame="b"] > .f-b { display: block; }
+
+/* ---------- Karakter dan properti di ruangan ----------
+   Pose, frame kaki, dan aksesori diganti lewat atribut data-* dari mesin adegan,
+   sehingga React tidak perlu render ulang setiap frame. */
+.actor .legs, .actor .acc { display: none; }
+.actor[data-legs="idle"] .legs-idle,
+.actor[data-legs="a"] .legs-a,
+.actor[data-legs="b"] .legs-b,
+.actor[data-legs="sit"] .legs-sit,
+.actor[data-legs="lie"] .legs-lie,
+.actor[data-legs="spread"] .legs-spread,
+.actor[data-legs="qiyam"] .legs-qiyam,
+.actor[data-legs="ruku"] .legs-ruku,
+.actor[data-legs="sujud"] .legs-sujud,
+.actor[data-legs="duduk"] .legs-duduk,
+.actor[data-legs="pushup"] .legs-pushup,
+.actor[data-legs="pushdown"] .legs-pushdown { display: block; }
+/* Mata terpejam saat tidur (hanya pemilik rumah yang punya versi ini). */
+.actor .legs.eyes-z { display: none; }
+.actor[data-sleep="true"]:has(.eyes-z)[data-legs="sit"] .legs-sit:not(.eyes-z),
+.actor[data-sleep="true"]:has(.eyes-z)[data-legs="lie"] .legs-lie:not(.eyes-z),
+.actor[data-sleep="true"]:has(.eyes-z)[data-legs="spread"] .legs-spread:not(.eyes-z) { display: none; }
+.actor[data-sleep="true"][data-legs="sit"] .legs-sit.eyes-z,
+.actor[data-sleep="true"][data-legs="lie"] .legs-lie.eyes-z,
+.actor[data-sleep="true"][data-legs="spread"] .legs-spread.eyes-z { display: block; }
+/* Gaya tidur yang aneh. */
+.actor[data-style="flip"] .legs { transform: scaleX(-1); }
+.actor[data-style="tilt"] .legs { transform: rotate(-16deg); transform-origin: 70% 100%; }
+.actor[data-style="face"] .legs { transform: scaleY(-1); }
+.actor[data-legs="spread"] .zzz { left: 30%; top: -0.5rem; }
+.actor .zzz { display: none; }
+.actor[data-sleep="true"] .zzz { display: block; }
+.actor[data-legs="lie"] .zzz { left: 20%; top: -0.5rem; }
+.actor[data-acc="phone"] .acc-phone,
+.actor[data-acc="book"] .acc-book,
+.actor[data-acc="food"] .acc-food,
+.actor[data-acc="pad"] .acc-pad,
+.actor[data-acc="mug"] .acc-mug,
+.actor[data-acc="guitar"] .acc-guitar { display: block; }
+.actor[data-hidden="true"] { visibility: hidden; }
+.actor[data-acc="phone"] .acc-phone { animation: bob 1.2s steps(2) infinite; }
+
+.prop .s-open { display: none; }
+/* Layar PC di kamar: satu gambar per keadaan. */
+.pc-screen .scr { display: none; }
+.pc-screen[data-state="off"] .scr-off,
+.pc-screen[data-state="code"] .scr-code,
+.pc-screen[data-state="google"] .scr-google,
+.pc-screen[data-state="project"] .scr-project,
+.pc-screen[data-state="game"] .scr-game { display: block; }
+.prop[data-state="open"] .s-open { display: block; }
+.prop[data-state="open"] .s-closed { display: none; }
+
+@keyframes tv-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.82; }
+}
+.prop[data-state="open"] .s-open.tv-screen { animation: tv-flicker 0.4s steps(2) infinite; }
+
+@keyframes bubble-in {
+  from { transform: translateY(6px) scale(0.85); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.speech { animation: bubble-in 160ms steps(3) both; }
+
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  25% { transform: translate(-3px, -2px) rotate(-4deg); }
+  50% { transform: translate(3px, 1px) rotate(3deg); }
+  75% { transform: translate(-2px, 2px) rotate(-2deg); }
+}
+.animate-shake { animation: shake 0.3s steps(4) infinite; }
+
+/* Intro: disembunyikan sebelum halaman digambar jika sudah pernah tampil di sesi ini. */
+html[data-intro="done"] .preloader {
+  display: none;
+}
+
+/* ---------- Transisi siang/malam (View Transitions API) ---------- */
+html[data-vt="theme"]::view-transition-old(root),
+html[data-vt="theme"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html[data-vt="theme"]::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* Cadangan untuk browser tanpa View Transitions. */
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+  transition: background-color 500ms steps(5), color 500ms steps(5), fill 500ms steps(5) !important;
+}

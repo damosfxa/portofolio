@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4af37" />
+      <stop offset="50%" stop-color="#f3e5ab" />
+      <stop offset="100%" stop-color="#aa7c11" />
+    </linearGradient>
+  </defs>
+  <text x="50" y="68" font-family="'Playfair Display', 'Times New Roman', serif" font-size="55" font-weight="bold" fill="url(#goldGradient)" text-anchor="middle" letter-spacing="-5">RR</text>
+</svg>

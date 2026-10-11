@@ -1,0 +1,41 @@
+const devicon = (path: string) => `https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/${path}`;
+
+// Ikon per nama teknologi. Nama yang tidak ada di sini tampil tanpa ikon.
+const TECH_ICONS: Record<string, string> = {
+  "Laravel": devicon("laravel/laravel-original.svg"),
+  "React": devicon("react/react-original.svg"),
+  "ReactJS": devicon("react/react-original.svg"),
+  "Vue": devicon("vuejs/vuejs-original.svg"),
+  "Angular": devicon("angular/angular-original.svg"),
+  "Tailwind CSS": devicon("tailwindcss/tailwindcss-original.svg"),
+  "Bootstrap": devicon("bootstrap/bootstrap-original.svg"),
+  "jQuery": devicon("jquery/jquery-original.svg"),
+  "MySQL": devicon("mysql/mysql-original.svg"),
+  "PostgreSQL": devicon("postgresql/postgresql-original.svg"),
+  "MongoDB": devicon("mongodb/mongodb-original.svg"),
+  "Next.js": devicon("nextjs/nextjs-original.svg"),
+  "Nextjs": devicon("nextjs/nextjs-original.svg"),
+  "TypeScript": devicon("typescript/typescript-original.svg"),
+  "Typescript": devicon("typescript/typescript-original.svg"),
+  "PHP": devicon("php/php-original.svg"),
+  "Python": devicon("python/python-original.svg"),
+  "Ruby": devicon("ruby/ruby-original.svg"),
+  "Java": devicon("java/java-original.svg"),
+  "Node.js": devicon("nodejs/nodejs-original.svg"),
+  "HTML": devicon("html5/html5-original.svg"),
+  "HTML5": devicon("html5/html5-original.svg"),
+  "CSS": devicon("css3/css3-original.svg"),
+  "CSS3": devicon("css3/css3-original.svg"),
+  "JS": devicon("javascript/javascript-original.svg"),
+  "JavaScript": devicon("javascript/javascript-original.svg"),
+  "Git": devicon("git/git-original.svg"),
+  "WordPress": devicon("wordpress/wordpress-plain.svg"),
+  "Figma": devicon("figma/figma-original.svg"),
+  "GraphQL": devicon("graphql/graphql-plain.svg"),
+  "Supabase": devicon("supabase/supabase-original.svg"),
+  "Prisma": devicon("prisma/prisma-original.svg"),
+  "Flutter": devicon("flutter/flutter-original.svg"),
+  "NEON": "https://cdn.simpleicons.org/neon/00e599",
+};
+
+export const techIcon = (name: string): string | undefined => TECH_ICONS[name];
