@@ -45,3 +45,6 @@ next-env.d.ts
 
 # CV lengkap berisi nomor HP: hanya untuk dikirim langsung saat melamar
 /docs/cv-pribadi/
+
+# Data pribadi (pelacak klien, dll): tidak ikut ke GitHub
+/docs/pribadi/
