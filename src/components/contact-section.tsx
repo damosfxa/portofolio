@@ -20,14 +20,15 @@ import { contactNight } from "@/components/rooms/night-acts";
 const GUESTS = ["joko", "tari", "budi", "dina", "bayu"] as const;
 const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)];
 import { site } from "@/content/site";
-import { TESTIMONIALS, WORKFLOW } from "@/content/collab";
+import { WORKFLOW } from "@/content/collab";
+import type { TestimonialItem } from "@/lib/types";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
 const inputClass =
   "w-full border-4 border-line bg-panel-2 px-4 py-3 text-lg text-ink placeholder:text-ink-soft/60 focus:bg-panel focus:outline-none focus:ring-4 focus:ring-coin";
 
-export function ContactSection({ index }: { index: number }) {
+export function ContactSection({ index, testimonials }: { index: number; testimonials: TestimonialItem[] }) {
   const { t, locale } = useLanguage();
   const { play } = useGame();
   const [status, setStatus] = useState<Status>("idle");
@@ -141,22 +142,22 @@ export function ContactSection({ index }: { index: number }) {
           </div>
 
           {/* Testimoni asli (tersembunyi selama belum ada) */}
-          {TESTIMONIALS.length > 0 && (
+          {testimonials.length > 0 && (
             <div className="mb-14">
               <h3 className="mb-6 font-pixel text-2xl font-bold text-on-sky text-pixel-shadow">
                 <Txt k="contact.testi" />
               </h3>
               <div className="grid gap-6 md:grid-cols-2">
-                {TESTIMONIALS.map((item, i) => (
+                {testimonials.map((item, i) => (
                   <motion.figure
-                    key={item.name}
+                    key={item.id}
                     initial={{ opacity: 0, y: 18 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.4 }}
                     transition={{ duration: 0.35, delay: i * 0.08, ease: steps(4) }}
                     className="pixel-box flex flex-col gap-4 p-6"
                   >
-                    <blockquote className="text-lg leading-relaxed">&ldquo;{item.quote[locale]}&rdquo;</blockquote>
+                    <blockquote className="text-lg leading-relaxed">&ldquo;{(locale === "en" && item.quote_en) || item.quote}&rdquo;</blockquote>
                     <figcaption className="text-sm">
                       {item.link ? (
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="font-bold underline decoration-coin decoration-2 underline-offset-4">
@@ -165,7 +166,7 @@ export function ContactSection({ index }: { index: number }) {
                       ) : (
                         <span className="font-bold">{item.name}</span>
                       )}
-                      <span className="text-ink-soft"> · {item.role[locale]}</span>
+                      {item.role && <span className="text-ink-soft"> · {(locale === "en" && item.role_en) || item.role}</span>}
                     </figcaption>
                   </motion.figure>
                 ))}

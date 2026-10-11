@@ -14,7 +14,7 @@ import { loadPortfolio } from "@/lib/content";
 export const revalidate = 60;
 
 export default async function Home() {
-  const { projects, skills, certificates, timeline } = await loadPortfolio();
+  const { projects, skills, certificates, timeline, testimonials } = await loadPortfolio();
 
   const sections = {
     projects: projects.length > 0,
@@ -51,7 +51,7 @@ export default async function Home() {
           <CertificatesSection index={next()} certificates={certificates} timeline={timeline} nextRoom={after("certificates")} />
         )}
         <BedroomSection index={next()} nextRoom="contact" />
-        <ContactSection index={next()} />
+        <ContactSection index={next()} testimonials={testimonials} />
       </main>
 
       <Footer />

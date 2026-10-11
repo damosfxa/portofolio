@@ -6,10 +6,9 @@ import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { site } from "@/content/site";
 import { tidyTitle } from "@/lib/text";
-import { TESTIMONIALS } from "@/content/collab";
-import type { Certificate, Project, Skill, TimelineItem } from "@/lib/types";
+import type { Certificate, Project, Skill, TestimonialItem, TimelineItem } from "@/lib/types";
 
-type Props = { projects: Project[]; skills: Skill[]; certificates: Certificate[]; timeline: TimelineItem[] };
+type Props = { projects: Project[]; skills: Skill[]; certificates: Certificate[]; timeline: TimelineItem[]; testimonials: TestimonialItem[] };
 
 /** Judul bagian di versi ringkas. */
 function Heading({ children }: { children: React.ReactNode }) {
@@ -20,7 +19,7 @@ function Heading({ children }: { children: React.ReactNode }) {
  * Versi ringkas portofolio: satu halaman biasa (tanpa elemen gim) untuk perekrut yang ingin
  * membaca cepat, dan rapi saat dicetak atau disimpan sebagai PDF.
  */
-export function ResumeView({ projects, skills, certificates, timeline }: Props) {
+export function ResumeView({ projects, skills, certificates, timeline, testimonials }: Props) {
   const { t, locale, setLocale } = useLanguage();
 
   // Skill dikelompokkan per kategori (kategori kosong masuk "Lainnya").
@@ -165,15 +164,15 @@ export function ResumeView({ projects, skills, certificates, timeline }: Props) 
         )}
 
         {/* Testimoni asli (muncul bila sudah diisi di content/collab.ts) */}
-        {TESTIMONIALS.length > 0 && (
+        {testimonials.length > 0 && (
           <section className="mb-10">
             <Heading>{t("contact.testi")}</Heading>
             <div className="flex flex-col gap-4">
-              {TESTIMONIALS.map((item) => (
-                <figure key={item.name} className="break-inside-avoid border-l-4 border-coin pl-4">
-                  <blockquote className="text-sm leading-relaxed">&ldquo;{item.quote[locale]}&rdquo;</blockquote>
+              {testimonials.map((item) => (
+                <figure key={item.id} className="break-inside-avoid border-l-4 border-coin pl-4">
+                  <blockquote className="text-sm leading-relaxed">&ldquo;{(locale === "en" && item.quote_en) || item.quote}&rdquo;</blockquote>
                   <figcaption className="mt-1 text-sm font-semibold">
-                    {item.name} <span className="font-normal text-ink-soft">· {item.role[locale]}</span>
+                    {item.name} {item.role && <span className="font-normal text-ink-soft">· {(locale === "en" && item.role_en) || item.role}</span>}
                   </figcaption>
                 </figure>
               ))}

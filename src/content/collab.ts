@@ -1,6 +1,6 @@
 import type { Line } from "@/components/game/scene";
 
-// Isi bagian "Cara kerja sama" dan testimoni di ruangan Kontak.
+// Isi bagian "Cara kerja sama" di ruangan Kontak (testimoni diisi lewat Admin → Testimoni).
 // Ubah teksnya di sini; tampilannya ada di components/contact-section.tsx.
 
 const L = (id: string, en: string): Line => ({ id, en });
@@ -32,25 +32,3 @@ export const WORKFLOW: { title: Line; desc: Line }[] = [
     desc: L("Aplikasi online, kode diserahkan, dan dibantu 30 hari setelahnya.", "The app goes live, you get the code, plus 30 days of support."),
   },
 ];
-
-export type Testimonial = {
-  quote: Line;
-  name: string;
-  /** Peran atau usaha, misalnya "Pemilik toko kue". */
-  role: Line;
-  /** Opsional: tautan ke situs/usaha atau profil LinkedIn pemberi testimoni. */
-  link?: string;
-};
-
-/**
- * Testimoni asli dari klien atau rekan. Selama kosong, bagian testimoni tidak ditampilkan.
- * Contoh format (hapus tanda komentar dan ganti isinya):
- *
- *   {
- *     quote: L("Sistem stoknya bikin selisih barang langsung ketahuan.", "The stock system makes discrepancies obvious right away."),
- *     name: "Nama Klien",
- *     role: L("Pemilik toko online", "Online shop owner"),
- *     link: "https://contoh.com",
- *   },
- */
-export const TESTIMONIALS: Testimonial[] = [];

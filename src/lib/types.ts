@@ -35,3 +35,15 @@ export type TimelineItem = {
   description: string | null;
   sort: number | null;
 };
+
+export type TestimonialItem = {
+  id: number;
+  /** Kutipan dalam bahasa Indonesia; versi Inggris opsional (kosong = pakai versi Indonesia). */
+  quote: string;
+  quote_en: string | null;
+  name: string;
+  role: string | null;
+  role_en: string | null;
+  link: string | null;
+  sort: number | null;
+};
