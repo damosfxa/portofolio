@@ -3,9 +3,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Edit2, Trash2, Plus, X, Image as ImageIcon } from "lucide-react";
+import type { Certificate } from "@/lib/types";
+
+async function loadCerts() {
+  const { data, error } = await supabase.from("certificates").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
+  if (error) console.error("Gagal memuat sertifikat:", error.message);
+  return (data ?? []) as Certificate[];
+}
 
 export default function AdminCertificates() {
-  const [certs, setCerts] = useState<any[]>([]);
+  const [certs, setCerts] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -13,22 +20,19 @@ export default function AdminCertificates() {
 
   const [formData, setFormData] = useState({ title: "", image: "", sort: 0 });
 
-  useEffect(() => {
-    fetchCerts();
-  }, []);
+  const fetchCerts = async () => setCerts(await loadCerts());
 
-  const fetchCerts = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.from("certificates").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
-      if (error) console.error("Supabase Error:", error);
-      if (data) setCerts(data);
-    } catch (e) {
-      console.error("Exception fetching certificates:", e);
-    } finally {
+  useEffect(() => {
+    let active = true;
+    loadCerts().then((rows) => {
+      if (!active) return;
+      setCerts(rows);
       setLoading(false);
-    }
-  };
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +67,7 @@ export default function AdminCertificates() {
     fetchCerts();
   };
 
-  const openEdit = (c: any) => {
+  const openEdit = (c: Certificate) => {
     setEditingId(c.id);
     setFormData({ title: c.title || "", image: c.image || "", sort: c.sort || 0 });
     setShowForm(true);

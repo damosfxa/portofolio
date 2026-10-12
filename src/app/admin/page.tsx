@@ -2,51 +2,65 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import type { Project } from "@/lib/types";
+
+type GithubRepo = { id: number; name: string; full_name: string; description: string | null; html_url: string; homepage: string | null; topics?: string[] };
+
+async function loadProjects() {
+  const { data, error } = await supabase.from("projects").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
+  if (error) console.error("Gagal memuat project:", error.message);
+  return (data ?? []) as Project[];
+}
+
+// Daftar repo publik untuk isi otomatis form (repo private tidak ikut).
+async function loadGithubRepos() {
+  try {
+    const res = await fetch("https://api.github.com/users/damosfxa/repos?sort=updated&per_page=100");
+    return res.ok ? ((await res.json()) as GithubRepo[]) : [];
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
 import { Edit2, Trash2, Plus, X, Image as ImageIcon, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 
 export default function AdminProjects() {
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
 
-  const [githubRepos, setGithubRepos] = useState<any[]>([]);
-  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [githubRepos, setGithubRepos] = useState<GithubRepo[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(true);
 
   // Form State
   const [formData, setFormData] = useState({ title: "", category: "Web App", description: "", tags: "", link: "", github: "", thumbnail: "", sort: 0, gallery: [] as string[], code_private: false });
 
+  const fetchProjects = async () => setProjects(await loadProjects());
+
   useEffect(() => {
-    fetchProjects();
-    fetchGithubRepos();
+    let active = true;
+    loadProjects().then((rows) => {
+      if (!active) return;
+      setProjects(rows);
+      setLoading(false);
+    });
+    loadGithubRepos().then((repos) => {
+      if (!active) return;
+      setGithubRepos(repos);
+      setLoadingRepos(false);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const fetchGithubRepos = async () => {
-    setLoadingRepos(true);
-    try {
-      const res = await fetch("https://api.github.com/users/damosfxa/repos?sort=updated&per_page=100");
-      if (res.ok) {
-        const data = await res.json();
-        setGithubRepos(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    setLoadingRepos(false);
-  };
-
-  const fetchProjects = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("projects").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
-    if (!error && data) setProjects(data);
-    setLoading(false);
-  };
-
-  const handleInputChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const t = e.target;
+    const value = t instanceof HTMLInputElement && t.type === "checkbox" ? t.checked : t.value;
+    setFormData(prev => ({ ...prev, [t.name]: value }));
   };
 
   const handleRepoSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -103,8 +117,8 @@ export default function AdminProjects() {
       const urls: string[] = [];
       for (const f of files) urls.push(await uploadFile(f));
       setFormData(prev => ({ ...prev, gallery: [...prev.gallery, ...urls] }));
-    } catch (err: any) {
-      alert("Gagal upload gambar galeri: " + err.message);
+    } catch (err) {
+      alert("Gagal upload gambar galeri: " + (err instanceof Error ? err.message : String(err)));
     }
     setUploadingGallery(false);
   };
@@ -130,7 +144,7 @@ export default function AdminProjects() {
     const payload = {
       ...formData,
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
-      sort: parseInt(formData.sort as any) || 0,
+      sort: Number(formData.sort) || 0,
     };
 
     let errorObj = null;
@@ -153,7 +167,7 @@ export default function AdminProjects() {
     fetchProjects();
   };
 
-  const openEdit = (p: any) => {
+  const openEdit = (p: Project) => {
     setEditingId(p.id);
     setFormData({
       title: p.title || "", category: p.category || "Web App", description: p.description || "",

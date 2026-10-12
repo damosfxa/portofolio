@@ -3,26 +3,37 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 
+// Kolom tabel profile bebas (teks hero, tentang, dan sebagainya), jadi disimpan sebagai pasangan nama-nilai.
+type Profile = Record<string, string | number | null>;
+
+async function loadProfile() {
+  const { data, error } = await supabase.from("profile").select("*").limit(1).single();
+  return (!error && data ? data : {}) as Profile;
+}
+
 export default function AdminProfile() {
-  const [profile, setProfile] = useState<any>({});
+  const [profile, setProfile] = useState<Profile>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"home" | "about">("home");
 
+  const fetchProfile = async () => setProfile(await loadProfile());
+
   useEffect(() => {
-    fetchProfile();
+    let active = true;
+    loadProfile().then((rows) => {
+      if (!active) return;
+      setProfile(rows);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const fetchProfile = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("profile").select("*").limit(1).single();
-    if (!error && data) setProfile(data);
-    setLoading(false);
-  };
-
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setProfile((prev: any) => ({ ...prev, [name]: value }));
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

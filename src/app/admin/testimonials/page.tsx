@@ -3,27 +3,36 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Edit2, Trash2, Plus, X } from "lucide-react";
+import type { TestimonialItem } from "@/lib/types";
 
 const EMPTY = { quote: "", quote_en: "", name: "", role: "", role_en: "", link: "", sort: 0 };
 
+async function loadTestimonials() {
+  const { data, error } = await supabase.from("testimonials").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
+  if (error) alert("Gagal memuat testimoni: " + error.message + (/testimonials/.test(error.message) ? "\n\nTabel testimoni belum dibuat. Jalankan SQL pembuatan tabel di Supabase dulu." : ""));
+  return (data ?? []) as TestimonialItem[];
+}
+
 export default function AdminTestimonials() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<TestimonialItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState(EMPTY);
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
+  const fetchItems = async () => setItems(await loadTestimonials());
 
-  const fetchItems = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("testimonials").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
-    if (error) alert("Gagal memuat testimoni: " + error.message + (/testimonials/.test(error.message) ? "\n\nTabel testimoni belum dibuat. Jalankan SQL pembuatan tabel di Supabase dulu." : ""));
-    if (!error && data) setItems(data);
-    setLoading(false);
-  };
+  useEffect(() => {
+    let active = true;
+    loadTestimonials().then((rows) => {
+      if (!active) return;
+      setItems(rows);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +46,7 @@ export default function AdminTestimonials() {
       role: formData.role.trim() || null,
       role_en: formData.role_en.trim() || null,
       link: formData.link.trim() || null,
-      sort: parseInt(formData.sort as any) || items.length + 1,
+      sort: Number(formData.sort) || items.length + 1,
     };
 
     const { error } = editingId
@@ -49,7 +58,7 @@ export default function AdminTestimonials() {
     fetchItems();
   };
 
-  const openEdit = (t: any) => {
+  const openEdit = (t: TestimonialItem) => {
     setEditingId(t.id);
     setFormData({
       quote: t.quote || "", quote_en: t.quote_en || "", name: t.name || "", role: t.role || "",

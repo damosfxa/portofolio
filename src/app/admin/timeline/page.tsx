@@ -3,25 +3,35 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Edit2, Trash2, Plus, X } from "lucide-react";
+import type { TimelineItem } from "@/lib/types";
+
+async function loadTimeline() {
+  const { data, error } = await supabase.from("timeline").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
+  if (error) console.error("Gagal memuat timeline:", error.message);
+  return (data ?? []) as TimelineItem[];
+}
 
 export default function AdminTimeline() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({ year: "", title: "", description: "", sort: 0 });
 
-  useEffect(() => {
-    fetchTimeline();
-  }, []);
+  const fetchTimeline = async () => setItems(await loadTimeline());
 
-  const fetchTimeline = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("timeline").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
-    if (!error && data) setItems(data);
-    setLoading(false);
-  };
+  useEffect(() => {
+    let active = true;
+    loadTimeline().then((rows) => {
+      if (!active) return;
+      setItems(rows);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +47,7 @@ export default function AdminTimeline() {
     fetchTimeline();
   };
 
-  const openEdit = (t: any) => {
+  const openEdit = (t: TimelineItem) => {
     setEditingId(t.id);
     setFormData({ year: t.year || "", title: t.title || "", description: t.description || "", sort: t.sort || 0 });
     setShowForm(true);

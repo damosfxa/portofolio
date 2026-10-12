@@ -1,25 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
+// Penanda login hanya untuk tampilan admin; keamanan data yang sebenarnya dijaga RLS di Supabase.
+const noSubscribe = () => () => {};
+const readAuth = () => sessionStorage.getItem("rr_admin_auth") === "true";
+const serverAuth = () => null;
+
 export function AdminAuthWrapper({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+  // null saat render di server (sessionStorage belum ada), true/false setelah di browser.
+  const isAuth = useSyncExternalStore(noSubscribe, readAuth, serverAuth);
+  const onLogin = pathname === "/admin/login";
+  const redirectTo = isAuth === null ? null : !isAuth && !onLogin ? "/admin/login" : isAuth && onLogin ? "/admin" : null;
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem("rr_admin_auth") === "true";
-    if (!isAuth && pathname !== "/admin/login") {
-      router.push("/admin/login");
-    } else if (isAuth && pathname === "/admin/login") {
-      router.push("/admin");
-    } else {
-      setIsAuthenticated(true);
-    }
-  }, [pathname, router]);
+    if (redirectTo) router.push(redirectTo);
+  }, [redirectTo, router]);
 
-  if (!isAuthenticated) {
+  if (isAuth === null || redirectTo) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
   }
 

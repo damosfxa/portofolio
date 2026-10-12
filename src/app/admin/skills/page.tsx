@@ -3,32 +3,38 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { Edit2, Trash2, Plus, X } from "lucide-react";
+import type { Skill } from "@/lib/types";
+
+async function loadSkills() {
+  const { data, error } = await supabase.from("skills").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
+  if (error) {
+    console.error("Gagal memuat skill:", error.message);
+    alert("Gagal memuat skill: " + error.message);
+  }
+  return (data ?? []) as Skill[];
+}
 
 export default function AdminSkills() {
-  const [skills, setSkills] = useState<any[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({ name: "", category: "Frontend - Language" });
 
-  useEffect(() => {
-    fetchSkills();
-  }, []);
+  const fetchSkills = async () => setSkills(await loadSkills());
 
-  const fetchSkills = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.from("skills").select("*").order("sort", { ascending: true }).order("id", { ascending: false });
-      if (error) console.error("Supabase Error:", error);
-      if (data) setSkills(data);
-    } catch (e: any) {
-      console.error("Exception fetching skills:", e);
-      alert("Error fetching skills: " + (e.message || String(e)));
-    } finally {
+  useEffect(() => {
+    let active = true;
+    loadSkills().then((rows) => {
+      if (!active) return;
+      setSkills(rows);
       setLoading(false);
-    }
-  };
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +50,7 @@ export default function AdminSkills() {
     fetchSkills();
   };
 
-  const openEdit = (s: any) => {
+  const openEdit = (s: Skill) => {
     setEditingId(s.id);
     setFormData({ name: s.name, category: s.category || "Frontend - Language" });
     setShowForm(true);
