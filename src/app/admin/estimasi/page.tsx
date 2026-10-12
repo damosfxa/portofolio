@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Calculator, Copy, FileText, Plus, Printer, RotateCcw, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Calculator, Copy, FileText, Plus, Printer, Receipt, RotateCcw, Trash2, X } from "lucide-react";
 import {
-  DEFAULT_SETTINGS, LEVEL_STYLE, MODULES, PROJECT_TYPES, roundPrice, rupiah,
+  DEFAULT_SETTINGS, INVOICE_DRAFT_KEY, LEVEL_STYLE, MODULES, PROJECT_TYPES, roundPrice, rupiah,
   type Feature, type Settings,
 } from "@/content/estimator";
 
@@ -330,6 +331,22 @@ function Quote({
   const weeks1 = hasPhase2 ? `${phase1.weeksMin}–${phase1.weeksMax}` : `${phase1.weeksMin + phase2.weeksMin}–${phase1.weeksMax + phase2.weeksMax}`;
   const total = price1 + (hasPhase2 && includePhase2 ? price2 : 0);
   const dp = roundPrice((price1 * settings.dpPercent) / 100);
+  const router = useRouter();
+
+  // Lanjutkan ke halaman Invoice dengan tagihan DP yang sudah terisi.
+  const toInvoice = () => {
+    const draft = {
+      client,
+      project: projectName,
+      kind: "dp",
+      items: [{ desc: `DP ${settings.dpPercent}% ${projectName}${hasPhase2 ? " (tahap 1)" : ""}`, qty: 1, price: dp }],
+      notes: `Sesuai penawaran ${number}`,
+    };
+    try {
+      sessionStorage.setItem(INVOICE_DRAFT_KEY, JSON.stringify(draft));
+    } catch {}
+    router.push("/admin/invoice");
+  };
 
 
   return createPortal(
@@ -339,6 +356,7 @@ function Quote({
           <p className="text-white text-sm">Harga bisa diubah langsung di dokumen. Klik Cetak, lalu pilih <b>Save as PDF</b>.</p>
           <div className="flex gap-2">
             <button onClick={() => window.print()} className="flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-lg text-sm"><Printer className="w-4 h-4" /> Cetak / PDF</button>
+            <button onClick={toInvoice} className="flex items-center gap-2 bg-[#F2A33A] text-black font-bold px-4 py-2 rounded-lg text-sm"><Receipt className="w-4 h-4" /> Buat invoice DP</button>
             <button onClick={onClose} className="flex items-center gap-1 bg-white/20 text-white px-3 py-2 rounded-lg text-sm"><X className="w-4 h-4" /> Tutup</button>
           </div>
         </div>

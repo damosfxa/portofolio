@@ -47,3 +47,21 @@ export type TestimonialItem = {
   link: string | null;
   sort: number | null;
 };
+
+export type InvoiceItem = { desc: string; qty: number; price: number };
+
+export type Invoice = {
+  id: number;
+  /** Contoh: INV/2026/10/001 */
+  number: string;
+  client: string;
+  project: string | null;
+  kind: "dp" | "pelunasan" | "lainnya";
+  items: InvoiceItem[];
+  discount: number;
+  issued_at: string;
+  due_at: string | null;
+  status: "belum" | "lunas";
+  paid_at: string | null;
+  notes: string | null;
+};

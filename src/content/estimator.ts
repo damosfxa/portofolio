@@ -254,3 +254,6 @@ export const LEVEL_STYLE: Record<Level, string> = {
 /** Bulatkan ke kelipatan Rp100.000. */
 export const roundPrice = (n: number) => Math.round(n / 100000) * 100000;
 export const rupiah = (n: number) => "Rp" + n.toLocaleString("id-ID");
+
+/** Kunci sessionStorage untuk draf invoice yang dikirim dari penawaran ke halaman Invoice. */
+export const INVOICE_DRAFT_KEY = "rr_invoice_draft";

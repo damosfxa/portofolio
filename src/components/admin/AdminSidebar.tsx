@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink, Quote, Calculator } from "lucide-react";
+import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink, Quote, Calculator, Receipt, MessageSquareText } from "lucide-react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -22,6 +22,8 @@ export function AdminSidebar() {
     { label: "Timeline", path: "/admin/timeline", icon: <Clock className="w-4 h-4" /> },
     { label: "Testimoni", path: "/admin/testimonials", icon: <Quote className="w-4 h-4" /> },
     { label: "Kalkulator", path: "/admin/estimasi", icon: <Calculator className="w-4 h-4" /> },
+    { label: "Invoice", path: "/admin/invoice", icon: <Receipt className="w-4 h-4" /> },
+    { label: "Template Chat", path: "/admin/template-chat", icon: <MessageSquareText className="w-4 h-4" /> },
     { label: "Profile", path: "/admin/profile", icon: <User className="w-4 h-4" /> },
   ];
 
