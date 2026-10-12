@@ -65,3 +65,6 @@ export type Invoice = {
   paid_at: string | null;
   notes: string | null;
 };
+
+/** Template balasan chat untuk klien (tabel reply_templates, khusus admin). */
+export type ReplyTemplate = { id: number; grp: string; title: string; body: string; note: string | null; sort: number | null };

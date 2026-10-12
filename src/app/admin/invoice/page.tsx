@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { CheckCircle2, Edit2, Plus, Printer, Receipt, RotateCcw, Trash2, X } from "lucide-react";
+import { CheckCircle2, Edit2, Plus, Printer, Receipt, RotateCcw, Save, Trash2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { loadSetting, saveSetting } from "@/lib/admin-data";
 import { INVOICE_DRAFT_KEY, rupiah } from "@/content/estimator";
 import type { Invoice, InvoiceItem } from "@/lib/types";
 
-const BANK_KEY = "rr_invoice_bank";
 
 type Bank = { bank: string; account: string; name: string };
 type Draft = Omit<Invoice, "id" | "number" | "paid_at" | "status">;
@@ -41,13 +41,7 @@ async function nextNumber(issued: string) {
   return prefix + String(last + 1).padStart(3, "0");
 }
 
-function readBank(): Bank {
-  try {
-    return { bank: "", account: "", name: "", ...JSON.parse(localStorage.getItem(BANK_KEY) || "{}") };
-  } catch {
-    return { bank: "", account: "", name: "" };
-  }
-}
+const EMPTY_BANK: Bank = { bank: "", account: "", name: "" };
 
 // Draf dari Kalkulator dibaca sekali saat halaman dibuka, lalu dihapus.
 function takeDraft(): Draft | null {
@@ -70,16 +64,20 @@ export default function AdminInvoice() {
   const [form, setForm] = useState<Draft | null>(initialDraft);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const [bank, setBankState] = useState<Bank>(readBank);
+  const [bank, setBankState] = useState<Bank>(EMPTY_BANK);
+  const [savedBank, setSavedBank] = useState<Bank>(EMPTY_BANK);
   const [printing, setPrinting] = useState<Invoice | null>(null);
 
   const refresh = async () => setItems(await loadInvoices());
 
   useEffect(() => {
     let active = true;
-    loadInvoices().then((rows) => {
+    Promise.all([loadInvoices(), loadSetting<Bank>("invoice_bank")]).then(([rows, b]) => {
       if (!active) return;
       setItems(rows);
+      const nextBank = { ...EMPTY_BANK, ...(b ?? {}) };
+      setBankState(nextBank);
+      setSavedBank(nextBank);
       setLoading(false);
     });
     return () => {
@@ -87,12 +85,10 @@ export default function AdminInvoice() {
     };
   }, []);
 
-  const setBank = (patch: Partial<Bank>) => {
-    const next = { ...bank, ...patch };
-    setBankState(next);
-    try {
-      localStorage.setItem(BANK_KEY, JSON.stringify(next));
-    } catch {}
+  const setBank = (patch: Partial<Bank>) => setBankState((prev) => ({ ...prev, ...patch }));
+  const bankChanged = JSON.stringify(bank) !== JSON.stringify(savedBank);
+  const saveBank = async () => {
+    if (await saveSetting("invoice_bank", bank)) setSavedBank(bank);
   };
 
   const patchForm = (patch: Partial<Draft>) => setForm((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -225,12 +221,15 @@ export default function AdminInvoice() {
 
       <section className="bg-surface border border-border rounded-2xl p-5 mb-8">
         <h2 className="font-bold text-foreground mb-1">Rekening pembayaran</h2>
-        <p className="text-xs text-text-muted mb-3">Tampil di setiap invoice. Tersimpan di browser ini saja.</p>
+        <p className="text-xs text-text-muted mb-3">Tampil di setiap invoice. Tersimpan di database, hanya bisa dibaca akun admin.</p>
         <div className="grid gap-3 md:grid-cols-3">
           <input className={field} placeholder="Nama bank (contoh: BCA)" value={bank.bank} onChange={(e) => setBank({ bank: e.target.value })} />
           <input className={field} placeholder="Nomor rekening" value={bank.account} onChange={(e) => setBank({ account: e.target.value })} />
           <input className={field} placeholder="Atas nama" value={bank.name} onChange={(e) => setBank({ name: e.target.value })} />
         </div>
+        {bankChanged && (
+          <button onClick={saveBank} className="mt-3 flex items-center gap-1.5 text-xs font-bold bg-primary text-white rounded-lg px-3 py-2"><Save className="w-3.5 h-3.5" /> Simpan rekening</button>
+        )}
       </section>
 
       {loading ? (

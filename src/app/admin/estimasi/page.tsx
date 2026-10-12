@@ -1,49 +1,76 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Calculator, Copy, FileText, Plus, Printer, Receipt, RotateCcw, Trash2, X } from "lucide-react";
+import { Calculator, Copy, FileText, Pencil, Plus, Printer, Receipt, RotateCcw, Save, Trash2, X } from "lucide-react";
 import {
-  DEFAULT_SETTINGS, INVOICE_DRAFT_KEY, LEVEL_STYLE, MODULES, PROJECT_TYPES, roundPrice, rupiah,
-  type Feature, type Settings,
+  INVOICE_DRAFT_KEY, LEVEL_STYLE, roundPrice, rupiah,
+  type EstimatorData, type Feature, type Level, type ProjectType, type Settings,
 } from "@/content/estimator";
-
-const SETTINGS_KEY = "rr_estimator_settings";
-
-// Pengaturan tarif disimpan di browser ini saja (kenyamanan), dengan nilai bawaan bila tidak ada.
-function readSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS;
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
-}
+import { loadSetting, saveSetting } from "@/lib/admin-data";
 
 type CustomFeature = Feature & { custom: true };
 
 const input = "bg-background border border-border rounded-xl px-3 py-2 text-sm w-full";
+const small = "bg-background border border-border rounded-lg px-2 py-1 text-sm";
 
-export default function AdminEstimator() {
+export default function AdminEstimatorPage() {
+  const [data, setData] = useState<EstimatorData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    loadSetting<EstimatorData>("estimator").then((d) => {
+      if (!active) return;
+      setData(d);
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const save = async (next: EstimatorData) => {
+    if (await saveSetting("estimator", next)) setData(next);
+  };
+
+  if (loading) return <div className="flex justify-center p-24"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+  if (!data?.modules?.length || !data.projectTypes?.length) {
+    return (
+      <div className="p-8 max-w-3xl mx-auto">
+        <h1 className="text-3xl font-bold mb-3">Kalkulator Estimasi</h1>
+        <p className="text-text-muted">Data kalkulator belum ada di database. Jalankan SQL pembuatan tabel lalu file <code>docs/pribadi/isi-data-admin.sql</code> di Supabase SQL Editor, kemudian muat ulang halaman ini.</p>
+      </div>
+    );
+  }
+  return <Estimator data={data} onSave={save} />;
+}
+
+function Estimator({ data, onSave }: { data: EstimatorData; onSave: (next: EstimatorData) => Promise<void> }) {
+  const MODULES = data.modules;
+  const PROJECT_TYPES = data.projectTypes;
   const [typeId, setTypeId] = useState(PROJECT_TYPES[0].id);
   const [selected, setSelected] = useState<Set<string>>(() => new Set(PROJECT_TYPES[0].defaults));
   const [custom, setCustom] = useState<CustomFeature[]>([]);
-  const [settings, setSettingsState] = useState<Settings>(readSettings);
+  const [settings, setSettings] = useState<Settings>(data.settings);
   const [client, setClient] = useState("");
   const [projectName, setProjectName] = useState("");
   const [newFeature, setNewFeature] = useState({ label: "", hours: 4, phase: 1 as 1 | 2 });
   const [showQuote, setShowQuote] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [draft, setDraft] = useState<EstimatorData | null>(null);
+  const [saving, setSaving] = useState(false);
+  const settingsChanged = JSON.stringify(settings) !== JSON.stringify(data.settings);
 
   const type = PROJECT_TYPES.find((t) => t.id === typeId) ?? PROJECT_TYPES[0];
 
-  const setSettings = (patch: Partial<Settings>) => {
-    const next = { ...settings, ...patch };
-    setSettingsState(next);
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
-    } catch {}
+  const patchSettings = (patch: Partial<Settings>) => setSettings((prev) => ({ ...prev, ...patch }));
+
+  const saveSettings = async () => {
+    setSaving(true);
+    await onSave({ ...data, settings });
+    setSaving(false);
   };
 
   const chooseType = (id: string) => {
@@ -90,7 +117,7 @@ export default function AdminEstimator() {
       hard: chosen.filter((x) => x.level === "sulit"),
       bothDesigns: selected.has("design_custom") && selected.has("design_template"),
     };
-  }, [selected, custom, settings]);
+  }, [selected, custom, settings, MODULES]);
 
   const summaryText = () => {
     const { all, phase1, phase2 } = result;
@@ -121,10 +148,34 @@ export default function AdminEstimator() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 flex items-center gap-3"><Calculator className="w-7 h-7" /> Kalkulator Estimasi</h1>
-        <p className="text-text-muted">Pilih jenis project dan fitur dari brief klien. Hasilnya: kisaran harga, lama pengerjaan, tech stack, dan dokumen penawaran. Hanya kamu yang bisa melihat halaman ini.</p>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 flex items-center gap-3"><Calculator className="w-7 h-7" /> Kalkulator Estimasi</h1>
+          <p className="text-text-muted">Pilih jenis project dan fitur dari brief klien. Hasilnya: kisaran harga, lama pengerjaan, tech stack, dan dokumen penawaran. Hanya kamu yang bisa melihat halaman ini.</p>
+        </div>
+        {!draft && (
+          <button onClick={() => setDraft(structuredClone(data))} className="flex items-center gap-2 border border-border font-semibold px-4 py-2 rounded-xl text-sm hover:bg-surface-hover shrink-0">
+            <Pencil className="w-4 h-4" /> Atur fitur & jam
+          </button>
+        )}
       </div>
+
+      {draft && (
+        <DataEditor
+          draft={draft}
+          setDraft={setDraft}
+          currentType={typeId}
+          selected={selected}
+          saving={saving}
+          onCancel={() => setDraft(null)}
+          onSave={async () => {
+            setSaving(true);
+            await onSave(draft);
+            setSaving(false);
+            setDraft(null);
+          }}
+        />
+      )}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Kiri: input */}
@@ -192,31 +243,32 @@ export default function AdminEstimator() {
             <h2 className="font-bold text-foreground mb-3">Pengaturan tarif</h2>
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
               <label className="flex flex-col gap-1.5 text-xs font-semibold">Tarif bawah / jam
-                <input type="number" step={5000} className={input} value={settings.rateLow} onChange={(e) => setSettings({ rateLow: Number(e.target.value) })} />
+                <input type="number" step={5000} className={input} value={settings.rateLow} onChange={(e) => patchSettings({ rateLow: Number(e.target.value) })} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold">Tarif atas / jam
-                <input type="number" step={5000} className={input} value={settings.rateHigh} onChange={(e) => setSettings({ rateHigh: Number(e.target.value) })} />
+                <input type="number" step={5000} className={input} value={settings.rateHigh} onChange={(e) => patchSettings({ rateHigh: Number(e.target.value) })} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold">Cadangan waktu (%)
-                <input type="number" className={input} value={settings.buffer} onChange={(e) => setSettings({ buffer: Number(e.target.value) })} />
+                <input type="number" className={input} value={settings.buffer} onChange={(e) => patchSettings({ buffer: Number(e.target.value) })} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold">Jam kerja / minggu
-                <input type="number" className={input} value={settings.hoursPerWeek} onChange={(e) => setSettings({ hoursPerWeek: Math.max(1, Number(e.target.value)) })} />
+                <input type="number" className={input} value={settings.hoursPerWeek} onChange={(e) => patchSettings({ hoursPerWeek: Math.max(1, Number(e.target.value)) })} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold">DP (%)
-                <input type="number" className={input} value={settings.dpPercent} onChange={(e) => setSettings({ dpPercent: Number(e.target.value) })} />
+                <input type="number" className={input} value={settings.dpPercent} onChange={(e) => patchSettings({ dpPercent: Number(e.target.value) })} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold">Jatah revisi
-                <input type="number" className={input} value={settings.revisions} onChange={(e) => setSettings({ revisions: Number(e.target.value) })} />
+                <input type="number" className={input} value={settings.revisions} onChange={(e) => patchSettings({ revisions: Number(e.target.value) })} />
               </label>
               <label className="flex flex-col gap-1.5 text-xs font-semibold">Dukungan setelah online (hari)
-                <input type="number" className={input} value={settings.supportDays} onChange={(e) => setSettings({ supportDays: Number(e.target.value) })} />
+                <input type="number" className={input} value={settings.supportDays} onChange={(e) => patchSettings({ supportDays: Number(e.target.value) })} />
               </label>
-              <div className="flex items-end">
-                <button onClick={() => setSettings(DEFAULT_SETTINGS)} className="flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-foreground"><RotateCcw className="w-3.5 h-3.5" /> Kembalikan bawaan</button>
+              <div className="flex items-end gap-3">
+                <button onClick={saveSettings} disabled={!settingsChanged || saving} className="flex items-center gap-1.5 text-xs font-bold bg-primary text-white rounded-lg px-3 py-2 disabled:opacity-40"><Save className="w-3.5 h-3.5" /> Simpan</button>
+                <button onClick={() => setSettings(data.settings)} disabled={!settingsChanged} className="flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-foreground disabled:opacity-40"><RotateCcw className="w-3.5 h-3.5" /> Batal</button>
               </div>
             </div>
-            <p className="text-xs text-text-muted mt-3">Tersimpan di browser ini. Jam per fitur bisa diubah di file <code>src/content/estimator.ts</code>.</p>
+            <p className="text-xs text-text-muted mt-3">Perubahan langsung dipakai untuk hitungan. Klik Simpan supaya jadi bawaan berikutnya (tersimpan di database, khusus admin).</p>
           </section>
         </div>
 
@@ -307,7 +359,7 @@ function Quote({
 }: {
   client: string;
   projectName: string;
-  type: (typeof PROJECT_TYPES)[number];
+  type: ProjectType;
   settings: Settings;
   phase1: PhaseResult;
   phase2: PhaseResult;
@@ -459,6 +511,110 @@ function PhaseBlock({ title, list, weeks, price, onPrice }: { title: string; lis
         {list.map((x) => <li key={x.id} className="break-inside-avoid">{x.label}</li>)}
       </ul>
       <p className="mt-2 text-[#6B5646]">Perkiraan pengerjaan: {weeks} minggu</p>
+    </section>
+  );
+}
+
+const LEVELS: Level[] = ["mudah", "sedang", "sulit"];
+const slug = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 30) || "fitur";
+
+/** Mode atur data: ubah fitur, jam, kesulitan, tahap, dan isi tiap jenis project. Disimpan ke database. */
+function DataEditor({
+  draft, setDraft, currentType, selected, saving, onCancel, onSave,
+}: {
+  draft: EstimatorData;
+  setDraft: React.Dispatch<React.SetStateAction<EstimatorData | null>>;
+  currentType: string;
+  selected: Set<string>;
+  saving: boolean;
+  onCancel: () => void;
+  onSave: () => Promise<void>;
+}) {
+  const [typeId, setTypeId] = useState(currentType);
+  const type = draft.projectTypes.find((t) => t.id === typeId) ?? draft.projectTypes[0];
+
+  const editFeature = (mi: number, fi: number, patch: Partial<Feature>) =>
+    setDraft((d) => d && { ...d, modules: d.modules.map((m, i) => (i !== mi ? m : { ...m, features: m.features.map((x, k) => (k === fi ? { ...x, ...patch } : x)) })) });
+  const removeFeature = (mi: number, fi: number) =>
+    setDraft((d) => d && { ...d, modules: d.modules.map((m, i) => (i !== mi ? m : { ...m, features: m.features.filter((_, k) => k !== fi) })) });
+  const addFeature = (mi: number) =>
+    setDraft((d) => {
+      if (!d) return d;
+      const label = "Fitur baru";
+      const all = new Set(d.modules.flatMap((m) => m.features.map((x) => x.id)));
+      let id = slug(label);
+      while (all.has(id)) id = `${slug(label)}_${Math.random().toString(36).slice(2, 5)}`;
+      return { ...d, modules: d.modules.map((m, i) => (i !== mi ? m : { ...m, features: [...m.features, { id, label, hours: 4, level: "sedang", phase: 1 }] })) };
+    });
+  const editType = (patch: Partial<ProjectType>) =>
+    setDraft((d) => d && { ...d, projectTypes: d.projectTypes.map((t) => (t.id === type.id ? { ...t, ...patch } : t)) });
+
+  const lines = (arr: string[]) => arr.join("\n");
+  const fromLines = (text: string) => text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const stackText = type.stack.map((x) => `${x.part} | ${x.choice} | ${x.reason}`).join("\n");
+  const stackFrom = (text: string) =>
+    fromLines(text).map((l) => {
+      const [part = "", choice = "", reason = ""] = l.split("|").map((v) => v.trim());
+      return { part, choice, reason };
+    });
+
+  return (
+    <section className="bg-surface border-2 border-primary rounded-2xl p-6 mb-8 flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Atur fitur & jam</h2>
+          <p className="text-xs text-text-muted">Perubahan baru dipakai setelah klik Simpan. Data tersimpan di database dan hanya bisa dibaca akun admin.</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onCancel} className="px-4 py-2 rounded-xl text-sm font-semibold border border-border hover:bg-surface-hover">Batal</button>
+          <button onClick={onSave} disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-primary text-white disabled:opacity-50"><Save className="w-4 h-4" /> {saving ? "Menyimpan..." : "Simpan"}</button>
+        </div>
+      </div>
+
+      {draft.modules.map((m, mi) => (
+        <div key={m.id}>
+          <input className={`${small} font-bold mb-2`} value={m.label} onChange={(e) => setDraft((d) => d && { ...d, modules: d.modules.map((x, i) => (i === mi ? { ...x, label: e.target.value } : x)) })} />
+          <div className="flex flex-col gap-1.5">
+            {m.features.map((x, fi) => (
+              <div key={x.id} className="flex flex-wrap items-center gap-2">
+                <input className={`${small} flex-1 min-w-56`} value={x.label} onChange={(e) => editFeature(mi, fi, { label: e.target.value })} />
+                <input type="number" min={1} className={`${small} w-20`} value={x.hours} onChange={(e) => editFeature(mi, fi, { hours: Number(e.target.value) })} aria-label="Jam" />
+                <select className={small} value={x.level} onChange={(e) => editFeature(mi, fi, { level: e.target.value as Level })}>
+                  {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+                </select>
+                <select className={small} value={x.phase} onChange={(e) => editFeature(mi, fi, { phase: Number(e.target.value) as 1 | 2 })}>
+                  <option value={1}>Tahap 1</option>
+                  <option value={2}>Tahap 2</option>
+                </select>
+                <button onClick={() => removeFeature(mi, fi)} className="p-1.5 text-red-500 hover:bg-red-500/10 rounded" aria-label="Hapus fitur"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            ))}
+          </div>
+          <button onClick={() => addFeature(mi)} className="mt-1.5 text-xs font-semibold text-primary hover:underline">+ Tambah fitur di {m.label}</button>
+        </div>
+      ))}
+
+      <div className="border-t border-border pt-5 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="font-bold">Jenis project:</p>
+          <select className={small} value={type.id} onChange={(e) => setTypeId(e.target.value)}>
+            {draft.projectTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </select>
+          <input className={`${small} flex-1 min-w-48`} value={type.label} onChange={(e) => editType({ label: e.target.value })} aria-label="Nama jenis project" />
+        </div>
+        <button onClick={() => editType({ defaults: [...selected] })} className="self-start text-xs font-semibold text-primary hover:underline">
+          Jadikan centang fitur yang sekarang ({selected.size}) sebagai bawaan jenis ini
+        </button>
+        <label className="flex flex-col gap-1 text-xs font-semibold">Tech stack (satu baris: Bagian | Pilihan | Alasan)
+          <textarea rows={5} className={input} defaultValue={stackText} key={`stack-${type.id}`} onBlur={(e) => editType({ stack: stackFrom(e.target.value) })} />
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-semibold">Biaya di luar jasa (satu per baris)
+          <textarea rows={4} className={input} defaultValue={lines(type.external)} key={`ext-${type.id}`} onBlur={(e) => editType({ external: fromLines(e.target.value) })} />
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-semibold">Pertanyaan untuk klien (satu per baris)
+          <textarea rows={6} className={input} defaultValue={lines(type.questions)} key={`q-${type.id}`} onBlur={(e) => editType({ questions: fromLines(e.target.value) })} />
+        </label>
+      </div>
     </section>
   );
 }
