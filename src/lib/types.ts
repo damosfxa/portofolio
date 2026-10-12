@@ -68,3 +68,32 @@ export type Invoice = {
 
 /** Template balasan chat untuk klien (tabel reply_templates, khusus admin). */
 export type ReplyTemplate = { id: number; grp: string; title: string; body: string; note: string | null; sort: number | null };
+
+export type LeadStatus = "baru" | "dikirim" | "dibalas" | "deal" | "tidak_tertarik" | "lewati";
+
+/** Calon klien hasil Agent Cari Klien (tabel leads, khusus admin). */
+export type Lead = {
+  id: number;
+  place_id: string;
+  name: string;
+  category: string | null;
+  address: string | null;
+  phone: string | null;
+  website: string | null;
+  maps_url: string | null;
+  instagram: string | null;
+  source_url: string | null;
+  rating: number | null;
+  reviews: number | null;
+  query: string | null;
+  fit_score: number | null;
+  fit_reason: string | null;
+  observations: string[] | null;
+  problem: string | null;
+  offer: string | null;
+  message: string | null;
+  status: LeadStatus;
+  next_follow_up: string | null;
+  notes: string | null;
+  created_at: string;
+};
