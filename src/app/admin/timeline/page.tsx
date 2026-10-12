@@ -60,7 +60,7 @@ export default function AdminTimeline() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Timeline</h1>

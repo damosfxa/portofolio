@@ -144,8 +144,8 @@ export default function AdminInvoice() {
   const paid = items.filter((x) => x.status === "lunas").reduce((a, x) => a + totalOf(x), 0);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
-      <div className="flex justify-between items-end mb-8 gap-4">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
+      <div className="flex flex-wrap justify-between items-end mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 flex items-center gap-3"><Receipt className="w-7 h-7" /> Invoice</h1>
           <p className="text-text-muted">Tagihan DP dan pelunasan. Simpan, cetak sebagai PDF, lalu tandai lunas saat pembayaran masuk.</p>
@@ -273,15 +273,17 @@ function InvoiceDoc({ inv, bank, onClose }: { inv: Invoice; bank: Bank; onClose:
   return createPortal(
     <div className="quote-print fixed inset-0 z-[200] overflow-y-auto bg-black/60 p-4 print:static print:bg-white print:p-0">
       <div className="mx-auto max-w-3xl">
-        <div className="flex justify-between items-center gap-3 mb-3 print:hidden">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-3 print:hidden">
           <p className="text-white text-sm">Klik Cetak, lalu pilih <b>Save as PDF</b>.</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={() => window.print()} className="flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-lg text-sm"><Printer className="w-4 h-4" /> Cetak / PDF</button>
             <button onClick={onClose} className="flex items-center gap-1 bg-white/20 text-white px-3 py-2 rounded-lg text-sm"><X className="w-4 h-4" /> Tutup</button>
           </div>
         </div>
 
-        <article className="relative bg-white text-[#2B1E16] p-10 shadow-xl print:shadow-none print:p-0 text-[13px] leading-relaxed" style={{ fontFamily: "Arial, sans-serif" }}>
+        <p className="sm:hidden text-white/80 text-xs mb-2 print:hidden">Geser ke samping untuk melihat seluruh dokumen.</p>
+        <div className="overflow-x-auto print:overflow-visible">
+        <article className="relative min-w-[640px] print:min-w-0 bg-white text-[#2B1E16] p-6 sm:p-10 shadow-xl print:shadow-none print:p-0 text-[13px] leading-relaxed" style={{ fontFamily: "Arial, sans-serif" }}>
           {lunas && (
             <div className="absolute right-10 top-28 rotate-[-12deg] border-4 border-emerald-600 text-emerald-600 font-bold text-3xl px-4 py-1 rounded opacity-80">LUNAS</div>
           )}
@@ -359,6 +361,7 @@ function InvoiceDoc({ inv, bank, onClose }: { inv: Invoice; bank: Bank; onClose:
 
           <footer className="mt-10 border-t border-gray-200 pt-4 text-[#6B5646]">Terima kasih atas kepercayaannya.</footer>
         </article>
+        </div>
       </div>
     </div>,
     document.body,

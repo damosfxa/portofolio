@@ -123,7 +123,7 @@ export default function AdminTemplateChat() {
   if (loading) return <div className="flex justify-center p-24"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 flex items-center gap-3"><MessageSquareText className="w-7 h-7" /> Template Chat</h1>

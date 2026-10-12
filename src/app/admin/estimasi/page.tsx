@@ -38,7 +38,7 @@ export default function AdminEstimatorPage() {
   if (loading) return <div className="flex justify-center p-24"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   if (!data?.modules?.length || !data.projectTypes?.length) {
     return (
-      <div className="p-8 max-w-3xl mx-auto">
+      <div className="p-4 sm:p-8 max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-3">Kalkulator Estimasi</h1>
         <p className="text-text-muted">Data kalkulator belum ada di database. Jalankan SQL pembuatan tabel lalu file <code>docs/pribadi/isi-data-admin.sql</code> di Supabase SQL Editor, kemudian muat ulang halaman ini.</p>
       </div>
@@ -147,7 +147,7 @@ function Estimator({ data, onSave }: { data: EstimatorData; onSave: (next: Estim
   const { all, phase1, phase2 } = result;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 flex items-center gap-3"><Calculator className="w-7 h-7" /> Kalkulator Estimasi</h1>
@@ -406,14 +406,16 @@ function Quote({
       <div className="mx-auto max-w-3xl">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3 print:hidden">
           <p className="text-white text-sm">Harga bisa diubah langsung di dokumen. Klik Cetak, lalu pilih <b>Save as PDF</b>.</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button onClick={() => window.print()} className="flex items-center gap-2 bg-white text-black font-bold px-4 py-2 rounded-lg text-sm"><Printer className="w-4 h-4" /> Cetak / PDF</button>
             <button onClick={toInvoice} className="flex items-center gap-2 bg-[#F2A33A] text-black font-bold px-4 py-2 rounded-lg text-sm"><Receipt className="w-4 h-4" /> Buat invoice DP</button>
             <button onClick={onClose} className="flex items-center gap-1 bg-white/20 text-white px-3 py-2 rounded-lg text-sm"><X className="w-4 h-4" /> Tutup</button>
           </div>
         </div>
 
-        <article className="bg-white text-[#2B1E16] p-10 shadow-xl print:shadow-none print:p-0 text-[13px] leading-relaxed" style={{ fontFamily: "Arial, sans-serif" }}>
+        <p className="sm:hidden text-white/80 text-xs mb-2 print:hidden">Geser ke samping untuk melihat seluruh dokumen.</p>
+        <div className="overflow-x-auto print:overflow-visible">
+        <article className="min-w-[640px] print:min-w-0 bg-white text-[#2B1E16] p-6 sm:p-10 shadow-xl print:shadow-none print:p-0 text-[13px] leading-relaxed" style={{ fontFamily: "Arial, sans-serif" }}>
           <header className="flex justify-between gap-6 border-b-4 border-[#F2A33A] pb-5">
             <div>
               <p className="text-2xl font-bold">Penawaran Harga</p>
@@ -487,6 +489,7 @@ function Quote({
             Terima kasih atas kepercayaannya. Untuk pertanyaan atau penyesuaian fitur, hubungi ryzkirham@gmail.com.
           </footer>
         </article>
+        </div>
       </div>
     </div>,
     document.body,

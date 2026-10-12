@@ -54,7 +54,7 @@ export default function AdminProfile() {
   if (loading) return <div className="flex justify-center p-24"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">Profile Settings</h1>
         <p className="text-text-muted">Kelola konten untuk halaman utama portofoliomu.</p>
@@ -142,7 +142,7 @@ export default function AdminProfile() {
             )}
             
             <div className="flex justify-end mt-4 pt-6 border-t border-border">
-              <button type="submit" disabled={saving} className="px-8 py-3 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 shadow-sm disabled:opacity-50 transition-all">
+              <button type="submit" disabled={saving} className="px-4 sm:px-8 py-3 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 shadow-sm disabled:opacity-50 transition-all">
                 {saving ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </div>

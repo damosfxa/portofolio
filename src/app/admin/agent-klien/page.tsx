@@ -153,7 +153,7 @@ export default function AgentKlien() {
   );
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 flex items-center gap-3"><Bot className="w-7 h-7" /> Agent Cari Klien</h1>
         <p className="text-text-muted">Agent mencari usaha lewat pencarian web, membaca websitenya, menilai kecocokan, lalu menulis pesan WhatsApp yang personal. Kamu tinggal cek dan kirim sendiri.</p>
@@ -247,11 +247,11 @@ function LeadCard({ lead, onUpdate, onSent, onRemove }: { lead: Lead; onUpdate: 
 
   return (
     <article className="bg-surface border border-border rounded-2xl p-5">
-      <div className="flex flex-wrap items-start gap-4">
+      <div className="flex items-start gap-3 sm:gap-4">
         <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center font-bold shrink-0 ${scoreCls}`}>
           <span className="text-lg leading-none">{score}</span><span className="text-[9px] opacity-80">/10</span>
         </div>
-        <div className="flex-1 min-w-56">
+        <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-bold text-foreground">{lead.name}</h2>
             <span className={`text-xs font-bold rounded-full px-2.5 py-0.5 ${STATUS[lead.status].cls}`}>{STATUS[lead.status].label}</span>

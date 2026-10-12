@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink, Quote, Calculator, Receipt, MessageSquareText, Bot } from "lucide-react";
+import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink, Quote, Calculator, Receipt, MessageSquareText, Bot, Menu, X } from "lucide-react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  // Di HP sidebar jadi laci yang dibuka dari bar atas; di layar lebar tetap menempel di kiri.
+  const [open, setOpen] = useState(false);
 
   if (pathname === "/admin/login") return null;
 
@@ -28,20 +31,35 @@ export function AdminSidebar() {
     { label: "Profile", path: "/admin/profile", icon: <User className="w-4 h-4" /> },
   ];
 
+  const current = navItems.find((item) => item.path === pathname)?.label ?? "Admin";
+
   return (
-    <aside className="w-64 border-r border-border bg-surface flex flex-col shrink-0 sticky top-0 h-[100dvh]">
-      <div className="p-6 border-b border-border">
+    <>
+      <header className="md:hidden fixed inset-x-0 top-0 z-40 h-14 flex items-center gap-3 px-4 border-b border-border bg-surface">
+        <button onClick={() => setOpen(true)} aria-label="Buka menu" className="p-2 -ml-2 rounded-lg hover:bg-surface-hover">
+          <Menu className="w-5 h-5" />
+        </button>
+        <span className="font-bold tracking-tight">RR</span>
+        <span className="text-sm text-text-muted truncate">{current}</span>
+      </header>
+      {open && <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setOpen(false)} />}
+    <aside className={`w-64 border-r border-border bg-surface flex flex-col shrink-0 h-[100dvh] fixed inset-y-0 left-0 z-50 transition-transform md:sticky md:top-0 md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className="p-6 border-b border-border flex items-center justify-between">
         <h1 className="text-xl font-bold tracking-tight">
           RR <span className="text-primary text-sm tracking-normal font-medium">Admin</span>
         </h1>
+        <button onClick={() => setOpen(false)} aria-label="Tutup menu" className="md:hidden p-2 -mr-2 rounded-lg hover:bg-surface-hover">
+          <X className="w-5 h-5" />
+        </button>
       </div>
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           return (
             <Link
               key={item.path}
               href={item.path}
+              onClick={() => setOpen(false)}
               className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-colors ${
                 isActive
                   ? "bg-foreground text-background shadow-md"
@@ -71,5 +89,6 @@ export function AdminSidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }
