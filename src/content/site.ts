@@ -7,7 +7,7 @@ export const site = {
   github: "https://github.com/damosfxa",
   linkedin: "https://www.linkedin.com/in/rizky-rhamadani-/",
   // CV per bahasa (file di folder public). Versi ini tanpa nomor HP karena bisa diunduh siapa saja;
-  // versi lengkap untuk melamar ada di docs/cv-pribadi (tidak ikut di-commit).
+  // versi lengkap untuk melamar ada di CODINGAN/bisnis/cv (di luar repo).
   // Bila null, tombol CV tidak ditampilkan.
   cv: {
     id: "/assets/cv/cv-rizky-rhamadani-id.pdf",

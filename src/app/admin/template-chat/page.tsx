@@ -10,7 +10,7 @@ import type { ReplyTemplate } from "@/lib/types";
 
 async function loadTemplates() {
   const { data, error } = await supabase.from("reply_templates").select("*").order("sort", { ascending: true }).order("id", { ascending: true });
-  if (error) alert("Gagal memuat template: " + error.message + (/reply_templates/.test(error.message) ? "\n\nTabel template belum dibuat. Jalankan SQL pembuatan tabel dan file docs/pribadi/isi-data-admin.sql di Supabase dulu." : ""));
+  if (error) alert("Gagal memuat template: " + error.message + (/reply_templates/.test(error.message) ? "\n\nTabel template belum dibuat. Jalankan SQL pembuatan tabel dan file isi-data-admin.sql (folder CODINGAN/bisnis) di Supabase dulu." : ""));
   return (data ?? []) as ReplyTemplate[];
 }
 

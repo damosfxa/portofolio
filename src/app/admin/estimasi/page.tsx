@@ -40,7 +40,7 @@ export default function AdminEstimatorPage() {
     return (
       <div className="p-4 sm:p-8 max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-3">Kalkulator Estimasi</h1>
-        <p className="text-text-muted">Data kalkulator belum ada di database. Jalankan SQL pembuatan tabel lalu file <code>docs/pribadi/isi-data-admin.sql</code> di Supabase SQL Editor, kemudian muat ulang halaman ini.</p>
+        <p className="text-text-muted">Data kalkulator belum ada di database. Jalankan SQL pembuatan tabel lalu file <code>isi-data-admin.sql</code> (folder CODINGAN/bisnis) di Supabase SQL Editor, kemudian muat ulang halaman ini.</p>
       </div>
     );
   }
