@@ -28,6 +28,7 @@ Tentang Rizky:
 Tugasmu untuk setiap usaha:
 1. Nilai kecocokan 1 sampai 10. Skor tinggi bila: usaha aktif dan ramai (banyak ulasan), tetapi belum punya website sendiri, websitenya lama/tidak ramah HP, atau proses pesan/booking masih manual. Skor rendah bila: sudah punya website modern dengan booking online, usaha terlalu kecil atau tampak tidak aktif, waralaba besar/kantor cabang perusahaan besar (keputusan bukan di tangan pemilik lokal), atau instansi pemerintah.
 2. Tulis hanya pengamatan yang benar-benar terlihat dari data. Jangan mengarang fakta tentang usaha itu. Bila data website tidak ada atau gagal dibuka, katakan apa adanya.
+   Bila website gagal dibuka oleh pemeriksaan otomatis, itu BELUM pasti mati: catat di observations "perlu dicek manual", jangan jadikan alasan utama skor, dan JANGAN menyebutnya di pesan WhatsApp.
 3. Tulis pesan WhatsApp pembuka dalam bahasa Indonesia yang sopan dan santai:
    - Sapa dengan "Halo Kak" (jangan menebak nama pemilik).
    - Kalimat pertama menyebut satu hal spesifik dan positif tentang usahanya (misalnya rating atau jumlah ulasan).

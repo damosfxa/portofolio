@@ -152,13 +152,33 @@ export async function readWebsite(url: string): Promise<SiteReport> {
   const base: SiteReport = { url, reachable: false, isSocialOnly: SOCIAL.test(url), title: null, description: null, mobileFriendly: null, https: url.startsWith("https://"), signals: [], text: "" };
   if (base.isSocialOnly) return { ...base, note: "Tautan mengarah ke media sosial atau marketplace, bukan website sendiri." };
 
+  // Dua kali coba dengan jeda waktu lebih panjang dan identitas browser biasa, supaya website yang
+  // sekadar lambat atau menolak bot tidak dianggap mati.
+  const attempts = [
+    { timeout: 12000, agent: "Mozilla/5.0 (compatible; RizkyLeadResearch/1.0; +https://rizkyrhamadani.com)" },
+    { timeout: 20000, agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36" },
+  ];
+  let res: Response | null = null;
+  let lastError: unknown = null;
+  for (const a of attempts) {
+    try {
+      res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(a.timeout), headers: { "User-Agent": a.agent, Accept: "text/html" } });
+      if (res.ok || ![403, 429, 500, 502, 503, 504].includes(res.status)) break;
+    } catch (e) {
+      lastError = e;
+      res = null;
+    }
+  }
+  if (!res) {
+    const timeout = lastError instanceof Error && lastError.name === "TimeoutError";
+    return { ...base, note: `${timeout ? "Website sangat lambat merespons" : "Website belum bisa dibuka"} saat dicek otomatis (2 kali dicoba). Belum pasti mati; perlu dicek manual.` };
+  }
+
   try {
-    const res = await fetch(url, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(9000),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; RizkyLeadResearch/1.0; +https://rizkyrhamadani.com)", Accept: "text/html" },
-    });
-    if (!res.ok) return { ...base, note: `Website membalas status ${res.status}.` };
+    if (!res.ok) {
+      const blocked = [403, 429].includes(res.status);
+      return { ...base, note: blocked ? `Website menolak pemeriksaan otomatis (status ${res.status}); kemungkinan tetap bisa dibuka orang biasa.` : `Website membalas status ${res.status}; perlu dicek manual.` };
+    }
     if (!(res.headers.get("content-type") ?? "").includes("text/html")) return { ...base, reachable: true, note: "Bukan halaman HTML." };
 
     const html = (await res.text()).slice(0, 400_000);
@@ -182,8 +202,7 @@ export async function readWebsite(url: string): Promise<SiteReport> {
       signals: SIGNALS.filter(([re]) => re.test(html)).map(([, label]) => label),
       text: text.slice(0, 5000),
     };
-  } catch (e) {
-    const timeout = e instanceof Error && e.name === "TimeoutError";
-    return { ...base, note: timeout ? "Website tidak merespons dalam 9 detik." : "Website tidak bisa dibuka." };
+  } catch {
+    return { ...base, note: "Isi website gagal dibaca saat dicek otomatis; perlu dicek manual." };
   }
 }
