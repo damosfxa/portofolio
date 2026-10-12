@@ -318,3 +318,14 @@ html.theme-fade *::before,
 html.theme-fade *::after {
   transition: background-color 500ms steps(5), color 500ms steps(5), fill 500ms steps(5) !important;
 }
+
+/* Penawaran dari kalkulator admin: saat dicetak, sembunyikan semua kecuali dokumennya. */
+@media print {
+  body:has(.quote-print) > *:not(.quote-print) {
+    display: none !important;
+  }
+  .quote-print {
+    position: static !important;
+    overflow: visible !important;
+  }
+}
