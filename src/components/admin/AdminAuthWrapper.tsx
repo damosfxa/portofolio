@@ -14,7 +14,7 @@ export function AdminAuthWrapper({ children }: { children: React.ReactNode }) {
   // null saat render di server (sessionStorage belum ada), true/false setelah di browser.
   const isAuth = useSyncExternalStore(noSubscribe, readAuth, serverAuth);
   const onLogin = pathname === "/admin/login";
-  const redirectTo = isAuth === null ? null : !isAuth && !onLogin ? "/admin/login" : isAuth && onLogin ? "/admin" : null;
+  const redirectTo = isAuth === null ? null : !isAuth && !onLogin ? "/admin/login" : isAuth && onLogin ? "/admin/hari-ini" : null;
 
   useEffect(() => {
     if (redirectTo) router.push(redirectTo);

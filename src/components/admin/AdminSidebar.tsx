@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink, Quote, Calculator, Receipt, MessageSquareText, MessagesSquare, Bot, Menu, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Code, Award, Clock, User, ExternalLink, Quote, Calculator, Receipt, MessageSquareText, MessagesSquare, Bot, Menu, X, Sun } from "lucide-react";
 
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -19,6 +19,7 @@ export function AdminSidebar() {
   };
 
   const navItems = [
+    { label: "Hari Ini", path: "/admin/hari-ini", icon: <Sun className="w-4 h-4" /> },
     { label: "Projects", path: "/admin", icon: <LayoutDashboard className="w-4 h-4" /> },
     { label: "Skills", path: "/admin/skills", icon: <Code className="w-4 h-4" /> },
     { label: "Certificates", path: "/admin/certificates", icon: <Award className="w-4 h-4" /> },

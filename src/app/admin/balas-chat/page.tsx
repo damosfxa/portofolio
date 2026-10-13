@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, Copy, Loader2, MessageCircle, MessagesSquare, Sparkles } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Lead, LeadStatus } from "@/lib/types";
+import { waNumber } from "@/lib/wa";
 
 // Agent Balas Chat: tempel chat dari calon klien, Claude menyiapkan 2 pilihan balasan.
 // Balasan tidak pernah dikirim otomatis; kamu yang menyalin dan menekan kirim di WhatsApp.
@@ -28,17 +29,10 @@ async function loadActiveLeads() {
   return (data ?? []) as Lead[];
 }
 
-/** Nomor Indonesia ke format wa.me (62...). */
-function waNumber(phone: string | null) {
-  if (!phone) return null;
-  let d = phone.replace(/\D/g, "");
-  if (d.startsWith("0")) d = "62" + d.slice(1);
-  return d.length >= 9 ? d : null;
-}
 
 export default function BalasChat() {
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [leadId, setLeadId] = useState<number | "">("");
+  const [leadId, setLeadId] = useState<number | "">(() => Number(new URLSearchParams(window.location.search).get("lead")) || "");
   const [chat, setChat] = useState("");
   const [note, setNote] = useState("");
   const [running, setRunning] = useState(false);

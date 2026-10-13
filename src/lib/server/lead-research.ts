@@ -51,12 +51,14 @@ export async function discoverLeads(query: string, want: number, avoid: string[]
 
   const messages: Anthropic.Beta.BetaMessageParam[] = [{
     role: "user",
-    content: `Cari ${want + 2} usaha nyata di Indonesia yang cocok dengan: "${query}".
+    content: `Cari ${want + 4} usaha nyata di Indonesia yang cocok dengan: "${query}".
 
 Untuk setiap usaha kumpulkan dari sumber publik (Google Maps, direktori usaha, Instagram, website usaha): nama, kategori, alamat atau area, nomor WhatsApp/telepon yang dicantumkan publik, website milik sendiri (bila ada), Instagram, rating dan jumlah ulasan Google (bila terlihat), link Google Maps (bila ada), dan halaman sumbernya.
 
 Aturan:
 - Hanya usaha yang masih beroperasi. Utamakan usaha lokal kecil-menengah, bukan waralaba nasional atau kantor cabang perusahaan besar.
+- Prioritaskan usaha yang ramai (banyak ulasan Google) tetapi belum punya website sendiri, atau hanya punya Instagram/marketplace/link WhatsApp. Usaha seperti ini paling butuh bantuan.
+- Usaha yang sudah punya website modern dengan booking/pemesanan online taruh paling akhir.
 - Jangan mengarang data. Bila tidak ditemukan, tulis "tidak ditemukan".
 - Lewati usaha berikut karena sudah pernah dianalisis: ${avoid.length ? avoid.slice(0, 80).join("; ") : "(belum ada)"}.
 
@@ -118,7 +120,17 @@ ${text}`,
       source_url: clean(b.source_url),
     };
   });
-  return { candidates, usage };
+  return { candidates: rankCandidates(candidates), usage };
+}
+
+/** Usaha ramai tanpa website sendiri paling berpeluang, jadi dianalisis lebih dulu. */
+export function rankCandidates(list: PlaceCandidate[]) {
+  const weight = (c: PlaceCandidate) => {
+    const ownSite = !!c.website && !SOCIAL.test(c.website);
+    const reviews = c.reviews ?? 0;
+    return (ownSite ? 0 : 3) + Math.log10(reviews + 1) + (c.phone ? 0.5 : 0);
+  };
+  return [...list].sort((a, b) => weight(b) - weight(a));
 }
 
 export type SiteReport = {

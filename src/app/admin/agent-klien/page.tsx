@@ -5,6 +5,8 @@ import { Bot, Copy, ExternalLink, Loader2, MapPin, MessageCircle, Search, Star, 
 import { supabase } from "@/lib/supabase";
 import { loadSetting, saveSetting } from "@/lib/admin-data";
 import type { Lead, LeadStatus } from "@/lib/types";
+import { waNumber } from "@/lib/wa";
+import { localDate } from "@/lib/local-date";
 
 // Agent Cari Klien: cari usaha lewat Google Places, analisis dengan Claude, siapkan pesan WhatsApp.
 // Pesan tidak pernah dikirim otomatis; kamu yang menekan kirim di WhatsApp.
@@ -23,7 +25,7 @@ const STATUS: Record<LeadStatus, { label: string; cls: string }> = {
 };
 
 const field = "bg-background border border-border rounded-xl px-3 py-2 text-sm";
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate();
 
 async function authHeaders() {
   const { data } = await supabase.auth.getSession();
@@ -45,20 +47,14 @@ async function loadLeads() {
   return (data ?? []) as Lead[];
 }
 
-/** Nomor Indonesia ke format wa.me (62...). */
-function waNumber(phone: string | null) {
-  if (!phone) return null;
-  let d = phone.replace(/\D/g, "");
-  if (d.startsWith("0")) d = "62" + d.slice(1);
-  return d.length >= 9 ? d : null;
-}
 
 export default function AgentKlien() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState<Budget | null>(null);
   const [limitDraft, setLimitDraft] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  // Halaman admin hanya dirender di browser (AdminAuthWrapper), jadi window aman dibaca di sini.
+  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get("q") ?? "");
   const [count, setCount] = useState(5);
   const [running, setRunning] = useState(false);
   const [steps, setSteps] = useState<Step[]>([]);
@@ -102,7 +98,7 @@ export default function AgentKlien() {
         try {
           const { lead } = await call<{ lead: Lead }>("/api/agents/leads/analyze", { candidate: candidates[i], query });
           setLeads((prev) => [lead, ...prev.filter((l) => l.id !== lead.id)]);
-          setSteps((s) => s.map((x, k) => (k === i + 1 ? { ...x, state: "selesai", note: `skor ${lead.fit_score}/10` } : x)));
+          setSteps((s) => s.map((x, k) => (k === i + 1 ? { ...x, state: "selesai", note: `skor ${lead.fit_score}/10${lead.status === "lewati" ? " · disembunyikan" : ""}` } : x)));
           refreshBudget();
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
@@ -124,13 +120,15 @@ export default function AgentKlien() {
   };
 
   const remove = async (lead: Lead) => {
-    if (!confirm(`Hapus ${lead.name}? Usaha ini bisa muncul lagi di pencarian berikutnya.`)) return;
+    if (!confirm(`Hapus ${lead.name}?
+
+Usaha yang dihapus bisa ditemukan dan dianalisis lagi (biaya lagi). Untuk menyembunyikan saja, ubah statusnya ke "Dilewati".`)) return;
     await supabase.from("leads").delete().eq("id", lead.id);
     setLeads((prev) => prev.filter((l) => l.id !== lead.id));
   };
 
   const markSent = (lead: Lead) => {
-    const next = new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10);
+    const next = localDate(4);
     update(lead, { status: "dikirim", next_follow_up: next });
   };
 

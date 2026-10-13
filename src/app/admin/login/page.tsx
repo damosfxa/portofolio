@@ -26,7 +26,7 @@ export default function LoginPage() {
     }
 
     sessionStorage.setItem("rr_admin_auth", "true");
-    router.push("/admin");
+    router.push("/admin/hari-ini");
     router.refresh();
   };
 

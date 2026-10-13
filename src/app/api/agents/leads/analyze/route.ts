@@ -29,7 +29,8 @@ export async function POST(req: Request) {
           problem: analysis.problem,
           offer: analysis.offer,
           message: analysis.message,
-          status: analysis.fit_score <= 3 ? "lewati" : "baru",
+          // Skor 6 ke bawah langsung disembunyikan (tab Dilewati), tetap diingat supaya tidak dianalisis ulang.
+          status: analysis.fit_score <= 6 ? "lewati" : "baru",
           next_follow_up: followUp,
           updated_at: new Date().toISOString(),
         }],
