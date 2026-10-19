@@ -43,7 +43,8 @@ export async function GET(req: Request) {
 
         const baru = candidates
           .filter((c) => !knownIds.has(c.place_id) && !knownNames.has(c.name.toLowerCase()))
-          .filter((c) => (c.reviews ?? 0) >= MIN_ULASAN)
+          // Jumlah ulasan yang tidak diketahui tetap dianalisis; yang jelas sepi dibuang.
+          .filter((c) => c.reviews == null || c.reviews >= MIN_ULASAN)
           .slice(0, PER_KOMBINASI);
 
         let disimpan = 0;
@@ -83,6 +84,7 @@ export async function GET(req: Request) {
       }
     }
 
+    console.log("lead-auto ringkasan", JSON.stringify(ringkasan));
     return Response.json({ ok: true, minggu: ringkasan });
   } catch (e) {
     return errorResponse(e);

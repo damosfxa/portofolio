@@ -19,8 +19,9 @@ export async function POST(req: Request) {
 
     const { candidates, usage } = await discoverLeads(q, want, (known ?? []).map((r) => r.name));
     const unseen = candidates.filter((c) => !knownIds.has(c.place_id) && !knownNames.has(c.name.toLowerCase()));
-    // Hanya usaha yang ramai (minimal 20 ulasan Google) yang dianalisis, supaya budget tidak habis untuk usaha kecil yang tidak aktif.
-    const fresh = unseen.filter((c) => (c.reviews ?? 0) >= 20).slice(0, want);
+    // Usaha yang jelas sepi (di bawah 20 ulasan Google) dibuang. Jumlah ulasan yang tidak diketahui tetap dianalisis,
+    // karena pencarian web sering tidak menemukan angkanya.
+    const fresh = unseen.filter((c) => c.reviews == null || c.reviews >= 20).slice(0, want);
     await logRun(db, "lead-search", usage, { query: q, found: candidates.length, fresh: fresh.length });
 
     return Response.json({ candidates: fresh, found: candidates.length, known: candidates.length - unseen.length });
